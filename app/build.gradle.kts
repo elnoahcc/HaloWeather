@@ -61,4 +61,10 @@ dependencies {
     val retrofitVersion = "3.0.0"
     implementation ("com.squareup.retrofit2:retrofit:$retrofitVersion")
     implementation("com.squareup.retrofit2:converter-gson:${retrofitVersion}")
+
+    // Untuk observeAsState
+    implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
+
+    // Untuk AsyncImage (Coil)
+    implementation("io.coil-kt:coil-compose:2.5.0")
 }
