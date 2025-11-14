@@ -1,7 +1,14 @@
 package com.elnoah.haloweather.api
 
+import com.google.gson.annotations.SerializedName
+
 data class Condition(
-    val code: Int,
-    val icon: String,
-    val text: String
+    @SerializedName("text")
+    val text: String = "",
+
+    @SerializedName("icon")
+    val icon: String = "",
+
+    @SerializedName("code")
+    val code: Int = 0
 )

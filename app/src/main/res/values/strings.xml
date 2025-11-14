@@ -8,4 +8,7 @@
     <string name="precipitation">Precipitation</string>
     <string name="time">Time</string>
     <string name="date">Date</string>
+    <string name="pressure">Pressure</string>
+    <string name="feels_like">Feels like</string>
+    <string name="visibility">Visibility</string>
 </resources>
