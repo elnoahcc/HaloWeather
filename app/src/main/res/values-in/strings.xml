@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HaloWeather</string>
+    <string name="failed_load_data">Gagal menampilkan data</string>
+    <string name="search_label">Cari lokasi yang diinginkan</string>
+    <string name="humidity">Kelembaban</string>
+    <string name="wind">Angin</string>
+    <string name="uv_index">Indeks UV</string>
+    <string name="precipitation">Curah Hujan</string>
+    <string name="time">Waktu</string>
+    <string name="date">Tanggal</string>
+</resources>

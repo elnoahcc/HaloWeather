@@ -29,7 +29,7 @@ class WeatherViewModel :ViewModel() {
                         _weatherResult.value = NetworkResponse.Success(it)
                     }
                 }else{
-                    _weatherResult.value = NetworkResponse.Error("Failed to load data")
+                    _weatherResult.value = NetworkResponse.Error("")
                 }
             }
             catch (e : Exception){

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">HaloWeather</string>
     <string name="failed_load_data">Failed to load data</string>

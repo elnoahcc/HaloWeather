@@ -15,7 +15,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ cara benar ambil ViewModel
         val weatherViewModel = ViewModelProvider(this)[WeatherViewModel::class.java]
 
         enableEdgeToEdge()
@@ -25,7 +24,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // ✅ kirim viewModel ke composable
+
                     WeatherPage(viewModel = weatherViewModel)
                 }
             }
