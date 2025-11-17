@@ -6,6 +6,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.elnoah.haloweather.api.LocationSuggestion
 import com.elnoah.haloweather.api.NetworkResponse
 import com.elnoah.haloweather.api.WeatherModel
 import com.elnoah.haloweather.ui.theme.StackSansText
@@ -74,8 +76,10 @@ fun WeatherPage(viewModel: WeatherViewModel) {
 
         var city by remember { mutableStateOf("") }
         val weatherResult = viewModel.weatherResult.observeAsState()
+        val locationSuggestions = viewModel.locationSuggestions.observeAsState(emptyList())
         val keyboardController = LocalSoftwareKeyboardController.current
         var backPressedOnce by remember { mutableStateOf(false) }
+        var showSuggestions by remember { mutableStateOf(false) }
 
         val hasSearched = weatherResult.value != null
         val colors = MaterialTheme.colorScheme
@@ -83,15 +87,12 @@ fun WeatherPage(viewModel: WeatherViewModel) {
         // Handle back press
         BackHandler(enabled = true) {
             if (hasSearched) {
-                // Reset ke tahap awal
                 viewModel.resetWeatherResult()
                 city = ""
                 backPressedOnce = false
             } else if (backPressedOnce) {
-                // Keluar aplikasi
                 System.exit(0)
             } else {
-                // Tandai back press pertama
                 backPressedOnce = true
             }
         }
@@ -121,7 +122,7 @@ fun WeatherPage(viewModel: WeatherViewModel) {
                     transitionSpec = {
                         fadeIn(tween(700)) + scaleIn(initialScale = 0.9f) togetherWith
                                 fadeOut(tween(400)) + scaleOut(targetScale = 0.7f)
-                    }
+                    }, label = "logo_animation"
                 ) { searched ->
                     Image(
                         painter = painterResource(id = R.drawable.halo_weather_icon),
@@ -134,65 +135,111 @@ fun WeatherPage(viewModel: WeatherViewModel) {
 
                 Spacer(modifier = Modifier.height(if (!hasSearched) 32.dp else 20.dp))
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = if (!hasSearched) 20.dp else 0.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colors.surface
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        OutlinedTextField(
-                            value = city,
-                            onValueChange = { city = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = {
-                                Text(
-                                    text = stringResource(R.string.search_label),
-                                    color = colors.onSurface.copy(alpha = 0.5f),
-                                    fontFamily = StackSansText
-                                )
-                            },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = colors.primary,
-                                focusedLabelColor = colors.primary,
-                                unfocusedBorderColor = colors.onSurface.copy(alpha = 0.2f)
-                            ),
-                            singleLine = true,
-                            textStyle = androidx.compose.ui.text.TextStyle(
-                                fontFamily = StackSansText
-                            )
-                        )
-                        IconButton(
-                            onClick = {
-                                if (city.isNotEmpty())
-                                    viewModel.getData(city)
-                                keyboardController?.hide()
-                            },
+                // Search Box dengan Suggestions
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Card(
                             modifier = Modifier
-                                .padding(start = 4.dp)
-                                .size(56.dp)
+                                .fillMaxWidth()
+                                .padding(top = if (!hasSearched) 20.dp else 0.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = colors.surface
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = colors.primary,
-                                modifier = Modifier.fillMaxSize()
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    Icons.Default.Search,
-                                    contentDescription = "Search",
-                                    tint = colors.onPrimary,
-                                    modifier = Modifier.padding(14.dp)
+                                OutlinedTextField(
+                                    value = city,
+                                    onValueChange = { newValue ->
+                                        city = newValue
+                                        showSuggestions = newValue.isNotEmpty()
+                                        viewModel.searchLocationSuggestions(newValue)
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    placeholder = {
+                                        Text(
+                                            text = stringResource(R.string.search_label),
+                                            color = colors.onSurface.copy(alpha = 0.5f),
+                                            fontFamily = StackSansText
+                                        )
+                                    },
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = colors.primary,
+                                        focusedLabelColor = colors.primary,
+                                        unfocusedBorderColor = colors.onSurface.copy(alpha = 0.2f)
+                                    ),
+                                    singleLine = true,
+                                    textStyle = androidx.compose.ui.text.TextStyle(
+                                        fontFamily = StackSansText
+                                    )
                                 )
+                                IconButton(
+                                    onClick = {
+                                        if (city.isNotEmpty()) {
+                                            viewModel.getData(city)
+                                            showSuggestions = false
+                                            viewModel.clearSuggestions()
+                                        }
+                                        keyboardController?.hide()
+                                    },
+                                    modifier = Modifier
+                                        .padding(start = 4.dp)
+                                        .size(56.dp)
+                                ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = colors.primary,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Search,
+                                            contentDescription = "Search",
+                                            tint = colors.onPrimary,
+                                            modifier = Modifier.padding(14.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Suggestions Dropdown
+                        if (showSuggestions && locationSuggestions.value.isNotEmpty()) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 4.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = colors.surface
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(max = 200.dp)
+                                        .verticalScroll(rememberScrollState())
+                                ) {
+                                    locationSuggestions.value.forEach { suggestion ->
+                                        SuggestionItem(
+                                            suggestion = suggestion,
+                                            onClick = {
+                                                city = suggestion.name
+                                                showSuggestions = false
+                                                viewModel.getData(suggestion.name)
+                                                viewModel.clearSuggestions()
+                                                keyboardController?.hide()
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -200,7 +247,11 @@ fun WeatherPage(viewModel: WeatherViewModel) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Crossfade(targetState = weatherResult.value, animationSpec = tween(700)) { result ->
+                Crossfade(
+                    targetState = weatherResult.value,
+                    animationSpec = tween(700),
+                    label = "weather_crossfade"
+                ) { result ->
                     when (result) {
 
                         NetworkResponse.Loading ->
@@ -229,29 +280,17 @@ fun WeatherPage(viewModel: WeatherViewModel) {
                                         fontFamily = StackSansText,
                                         fontSize = 14.sp
                                     )
-                                    if (backPressedOnce && !hasSearched) {
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            "Tekan sekali lagi untuk keluar",
-                                            color = colors.onSurface.copy(alpha = 0.6f),
-                                            fontFamily = StackSansText,
-                                            fontSize = 12.sp
-                                        )
-                                    }
                                 }
                             }
 
                         is NetworkResponse.Success -> {
                             Box(modifier = Modifier.fillMaxSize()) {
-
                                 WeatherAmbience(result.data.current.condition.text)
-
                                 WeatherDetails(result.data)
                             }
                         }
 
                         null -> {
-                            // Tampilkan pesan back press hint
                             if (backPressedOnce) {
                                 Card(
                                     modifier = Modifier
@@ -280,6 +319,51 @@ fun WeatherPage(viewModel: WeatherViewModel) {
 }
 
 @Composable
+fun SuggestionItem(
+    suggestion: LocationSuggestion,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        color = Color.Transparent
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Default.LocationOn,
+                contentDescription = null,
+                tint = colors.primary.copy(alpha = 0.7f),
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    suggestion.name,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = StackSansText,
+                    color = colors.onSurface
+                )
+                Text(
+                    "${suggestion.region}${if (suggestion.region.isNotEmpty()) ", " else ""}${suggestion.country}",
+                    fontSize = 12.sp,
+                    fontFamily = StackSansText,
+                    color = colors.onSurface.copy(alpha = 0.6f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun WeatherAmbience(condition: String) {
     when {
         condition.contains("rain", true) -> RainEffect()
@@ -294,21 +378,21 @@ fun RainEffect() {
     val drops = remember {
         List(60) {
             Triple(
-                Random.nextFloat(), // x position
-                Random.nextFloat(), // initial y offset
-                3f + Random.nextFloat() * 2f // speed variation
+                Random.nextFloat(),
+                Random.nextFloat(),
+                3f + Random.nextFloat() * 2f
             )
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition(label = "rain")
     val animationProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(800, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
-        )
+        ), label = "rain_progress"
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
@@ -332,21 +416,21 @@ fun SnowEffect() {
     val flakes = remember {
         List(40) {
             Triple(
-                Random.nextFloat(), // x position
-                Random.nextFloat(), // initial y offset
-                2f + Random.nextFloat() * 1.5f // size variation
+                Random.nextFloat(),
+                Random.nextFloat(),
+                2f + Random.nextFloat() * 1.5f
             )
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition(label = "snow")
     val animationProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(2000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
-        )
+        ), label = "snow_progress"
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
@@ -376,20 +460,19 @@ fun FogEffect() {
 
 @Composable
 fun SunGlowEffect() {
-    val infiniteTransition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition(label = "sun")
     val glow by infiniteTransition.animateFloat(
         initialValue = 0.7f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(3000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
-        )
+        ), label = "sun_glow"
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        // Fix: pastikan center dan radius tidak melebihi bounds
         val centerX = size.width / 2
-        val centerY = size.height / 4  // Posisi lebih tinggi agar tidak terpotong
+        val centerY = size.height / 4
         val maxRadius = minOf(size.width, size.height) / 2.5f
 
         drawCircle(
@@ -411,12 +494,9 @@ fun SunGlowEffect() {
 @Composable
 fun WeatherDetails(data: WeatherModel) {
     val colors = MaterialTheme.colorScheme
-    val dark = isSystemInDarkTheme()
 
-    // Translate weather condition to Indonesian
     val translatedCondition = WeatherTranslations.translate(data.current.condition.text)
 
-    // Calculate temperature conversions
     val tempCelsius = data.current.temp_c
     val tempFahrenheit = TemperatureUtils.celsiusToFahrenheit(tempCelsius)
     val tempKelvin = TemperatureUtils.celsiusToKelvin(tempCelsius)
@@ -429,7 +509,6 @@ fun WeatherDetails(data: WeatherModel) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Location Card dengan gradient
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -486,11 +565,9 @@ fun WeatherDetails(data: WeatherModel) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Temperature Section dengan konversi
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Main Temperature (Celsius) dengan shadow effect
             Text(
                 "${tempCelsius.toInt()}°",
                 fontSize = 88.sp,
@@ -508,7 +585,6 @@ fun WeatherDetails(data: WeatherModel) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Temperature conversions in smaller text
             Card(
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
@@ -520,7 +596,6 @@ fun WeatherDetails(data: WeatherModel) {
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Fahrenheit
                     TemperatureConversion(
                         value = TemperatureUtils.formatTemp(tempFahrenheit),
                         unit = "°F",
@@ -533,7 +608,6 @@ fun WeatherDetails(data: WeatherModel) {
                         fontSize = 14.sp
                     )
 
-                    // Kelvin
                     TemperatureConversion(
                         value = TemperatureUtils.formatTemp(tempKelvin),
                         unit = "K",
@@ -546,7 +620,6 @@ fun WeatherDetails(data: WeatherModel) {
                         fontSize = 14.sp
                     )
 
-                    // Reamur
                     TemperatureConversion(
                         value = TemperatureUtils.formatTemp(tempReamur),
                         unit = "°R",
@@ -558,7 +631,6 @@ fun WeatherDetails(data: WeatherModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Weather Icon dengan background
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = colors.primaryContainer.copy(alpha = 0.3f),
@@ -573,7 +645,6 @@ fun WeatherDetails(data: WeatherModel) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Weather Condition - TRANSLATED TO INDONESIAN
         Text(
             translatedCondition,
             fontSize = 22.sp,
@@ -584,7 +655,6 @@ fun WeatherDetails(data: WeatherModel) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Details Card dengan Grid 3x3
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -595,7 +665,6 @@ fun WeatherDetails(data: WeatherModel) {
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
 
-                // Row 1
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -606,10 +675,9 @@ fun WeatherDetails(data: WeatherModel) {
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Divider(color = colors.onSurface.copy(alpha = 0.1f))
+                HorizontalDivider(color = colors.onSurface.copy(alpha = 0.1f))
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Row 2
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -620,10 +688,9 @@ fun WeatherDetails(data: WeatherModel) {
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Divider(color = colors.onSurface.copy(alpha = 0.1f))
+                HorizontalDivider(color = colors.onSurface.copy(alpha = 0.1f))
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Row 3
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -639,7 +706,6 @@ fun WeatherDetails(data: WeatherModel) {
     }
 }
 
-// HANYA 1 FUNGSI TemperatureConversion
 @Composable
 fun TemperatureConversion(
     value: String,

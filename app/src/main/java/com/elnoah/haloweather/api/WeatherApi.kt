@@ -6,11 +6,16 @@ import retrofit2.http.Query
 
 interface WeatherApi {
 
-
-    @GET("/v1/current.json")
+    @GET("current.json")
     suspend fun getWeather(
-        @Query("key") apikey : String,
-        @Query("q") city : String
-    ) : Response<WeatherModel>
+        @Query("key") apiKey: String,
+        @Query("q") city: String
+    ): Response<WeatherModel>
 
+    // TAMBAHKAN INI - Autocomplete Search
+    @GET("search.json")
+    suspend fun searchLocation(
+        @Query("key") apiKey: String,
+        @Query("q") query: String
+    ): Response<List<LocationSuggestion>>
 }
