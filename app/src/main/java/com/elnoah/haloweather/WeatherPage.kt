@@ -142,33 +142,42 @@ fun CurrentLocationWeatherCard(
                 )
             )
     ) {
-        // Particle background effect
-        WeatherParticleBackground()
+        // Weather-based animation effect
+        when (val result = weatherResult.value) {
+            is NetworkResponse.Success -> {
+                WeatherAmbience(result.data.current.condition.text)
+            }
+            else -> {
+                // No animation when loading or error
+            }
+        }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(40.dp))
+
             // Logo dengan animasi
             Image(
                 painter = painterResource(id = R.drawable.halo_weather_icon),
                 contentDescription = "Halo Weather Logo",
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(80.dp)
                     .graphicsLayer {
                         scaleX = 1f + (glowAlpha * 0.1f)
                         scaleY = 1f + (glowAlpha * 0.1f)
                     }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 "Halo Weather",
-                fontSize = 32.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = StackSansText,
                 color = Color.White,
@@ -181,16 +190,16 @@ fun CurrentLocationWeatherCard(
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 "Cuaca Lokal Anda",
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontFamily = StackSansText,
                 color = Color.White.copy(alpha = 0.8f)
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Main Weather Card dengan glassmorphism effect
             when (val result = weatherResult.value) {
@@ -268,7 +277,7 @@ fun CurrentLocationWeatherCard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Search Button dengan animasi
             Button(
@@ -305,6 +314,8 @@ fun CurrentLocationWeatherCard(
                     )
                 }
             }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -379,7 +390,7 @@ fun CurrentLocationCard(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Main Weather Card
+        // Main Weather Card - Compact Version
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -394,105 +405,80 @@ fun CurrentLocationCard(
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Temperature
-                Text(
-                    "${data.current.temp_c.toInt()}°",
-                    fontSize = 96.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) Color.White else Color(0xFF1565C0),
-                    fontFamily = StackSansText,
-                    letterSpacing = (-4).sp
-                )
-
-                // Temperature Conversions
-                Row(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                // Left Side - Temperature
+                Column(
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    val tempF = TemperatureUtils.celsiusToFahrenheit(data.current.temp_c)
-                    val tempK = TemperatureUtils.celsiusToKelvin(data.current.temp_c)
-                    val tempR = TemperatureUtils.celsiusToReamur(data.current.temp_c)
+                    Text(
+                        "${data.current.temp_c.toInt()}°",
+                        fontSize = 72.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isDark) Color.White else Color(0xFF1565C0),
+                        fontFamily = StackSansText,
+                        letterSpacing = (-3).sp
+                    )
 
-                    TempUnit(
-                        value = TemperatureUtils.formatTemp(tempF),
-                        unit = "°F",
-                        isDark = isDark
-                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Temperature Conversions
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val tempF = TemperatureUtils.celsiusToFahrenheit(data.current.temp_c)
+                        val tempK = TemperatureUtils.celsiusToKelvin(data.current.temp_c)
+                        val tempR = TemperatureUtils.celsiusToReamur(data.current.temp_c)
+
+                        TempUnit(
+                            value = TemperatureUtils.formatTemp(tempF),
+                            unit = "°F",
+                            isDark = isDark
+                        )
+                        Text(
+                            "•",
+                            color = if (isDark) Color.White.copy(alpha = 0.3f) else Color(0xFF1A1C1E).copy(alpha = 0.3f),
+                            fontSize = 12.sp
+                        )
+                        TempUnit(
+                            value = TemperatureUtils.formatTemp(tempK),
+                            unit = "K",
+                            isDark = isDark
+                        )
+                        Text(
+                            "•",
+                            color = if (isDark) Color.White.copy(alpha = 0.3f) else Color(0xFF1A1C1E).copy(alpha = 0.3f),
+                            fontSize = 12.sp
+                        )
+                        TempUnit(
+                            value = TemperatureUtils.formatTemp(tempR),
+                            unit = "°R",
+                            isDark = isDark
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Text(
-                        "•",
-                        color = if (isDark) Color.White.copy(alpha = 0.3f) else Color(0xFF1A1C1E).copy(alpha = 0.3f),
-                        fontSize = 14.sp
-                    )
-                    TempUnit(
-                        value = TemperatureUtils.formatTemp(tempK),
-                        unit = "K",
-                        isDark = isDark
-                    )
-                    Text(
-                        "•",
-                        color = if (isDark) Color.White.copy(alpha = 0.3f) else Color(0xFF1A1C1E).copy(alpha = 0.3f),
-                        fontSize = 14.sp
-                    )
-                    TempUnit(
-                        value = TemperatureUtils.formatTemp(tempR),
-                        unit = "°R",
-                        isDark = isDark
+                        translatedCondition,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = StackSansText,
+                        color = if (isDark) Color.White.copy(alpha = 0.85f) else Color(0xFF1A1C1E).copy(alpha = 0.75f)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Weather Icon
+                // Right Side - Weather Icon
                 AsyncImage(
                     model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
                     contentDescription = null,
-                    modifier = Modifier.size(120.dp)
+                    modifier = Modifier.size(100.dp)
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    translatedCondition,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = StackSansText,
-                    color = if (isDark) Color.White.copy(alpha = 0.9f) else Color(0xFF1A1C1E).copy(alpha = 0.85f)
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // Quick Info Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    QuickInfoItemSimple(
-                        icon = "💧",
-                        label = "Kelembaban",
-                        value = "${data.current.humidity}%",
-                        isDark = isDark
-                    )
-
-                    QuickInfoItemSimple(
-                        icon = "💨",
-                        label = "Angin",
-                        value = "${data.current.wind_kph.toInt()} km/h",
-                        isDark = isDark
-                    )
-
-                    QuickInfoItemSimple(
-                        icon = "👁️",
-                        label = "Jarak Pandang",
-                        value = "${data.current.vis_km} km",
-                        isDark = isDark
-                    )
-                }
             }
         }
     }
@@ -574,44 +560,6 @@ fun QuickInfoItem(icon: String, label: String, value: String, isDark: Boolean) {
 }
 
 @Composable
-fun WeatherParticleBackground() {
-    val particles = remember {
-        List(30) {
-            Triple(
-                Random.nextFloat(),  // xPos (0f..1f)
-                Random.nextFloat(),  // initialY (0f..1f)
-                Random.nextFloat() * 4f + 2f // radius
-            )
-        }
-    }
-    val infiniteTransition = rememberInfiniteTransition(label = "particles")
-    val animationProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(20000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ), label = "particle_progress"
-    )
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        particles.forEach { (xPos, initialY, radius) ->
-            val progress = (animationProgress + initialY) % 1f
-            val yPos = progress * size.height
-            val alpha = when {
-                progress < 0.1f -> progress * 10
-                progress > 0.9f -> (1 - progress) * 10
-                else -> 1f
-            }
-            drawCircle(
-                color = Color.White.copy(alpha = 0.25f * alpha),
-                radius = radius,
-                center = Offset(xPos * size.width, yPos)
-            )
-        }
-    }
-}
-
-@Composable
 fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
     var city by remember { mutableStateOf("") }
     val weatherResult = viewModel.weatherResult.observeAsState()
@@ -664,8 +612,15 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
                 )
             )
     ) {
-        // Particle background effect
-        WeatherParticleBackground()
+        // Weather-based animation effect
+        when (val result = weatherResult.value) {
+            is NetworkResponse.Success -> {
+                WeatherAmbience(result.data.current.condition.text)
+            }
+            else -> {
+                // No animation when loading or error
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -1073,7 +1028,7 @@ fun WeatherDetailsModern(data: WeatherModel) {
                 ) {
                     QuickInfoItemSimple(
                         icon = "💧",
-                        label = "Kelembaban",
+                        label = stringResource(id = R.string.humidity),
                         value = "${data.current.humidity}%",
                         isDark = isDark
                     )
@@ -1115,9 +1070,13 @@ fun WeatherDetailsModern(data: WeatherModel) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    WeatherKeyValModern("UV Index", data.current.uv.toString(), isDark)
-                    WeatherKeyValModern("Presipitasi", "${data.current.precip_mm} mm", isDark)
-                    WeatherKeyValModern("Tekanan", "${data.current.pressure_mb} mb", isDark)
+                    WeatherKeyValModern(
+                        stringResource(id = R.string.uv_index),
+                        data.current.uv.toString(),
+                        isDark
+                    )
+                    WeatherKeyValModern(stringResource(id = R.string.precipitation), "${data.current.precip_mm} mm", isDark)
+                    WeatherKeyValModern(stringResource(id = R.string.pressure), "${data.current.pressure_mb} mb", isDark)
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -1126,9 +1085,9 @@ fun WeatherDetailsModern(data: WeatherModel) {
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    WeatherKeyValModern("Terasa Seperti", "${data.current.feelslike_c}°C", isDark)
-                    WeatherKeyValModern("Waktu", data.location.localtime.split(" ")[1], isDark)
-                    WeatherKeyValModern("Tanggal", data.location.localtime.split(" ")[0], isDark)
+                    WeatherKeyValModern(stringResource(id = R.string.feels_like), "${data.current.feelslike_c}°C", isDark)
+                    WeatherKeyValModern(stringResource(id = R.string.time), data.location.localtime.split(" ")[1], isDark)
+                    WeatherKeyValModern(stringResource(id = R.string.date), data.location.localtime.split(" ")[0], isDark)
                 }
             }
         }
@@ -1164,10 +1123,14 @@ fun WeatherKeyValModern(label: String, value: String, isDark: Boolean) {
 @Composable
 fun WeatherAmbience(condition: String) {
     when {
-        condition.contains("rain", true) -> RainEffect()
-        condition.contains("snow", true) -> SnowEffect()
-        condition.contains("cloud", true) -> FogEffect()
-        condition.contains("sun", true) || condition.contains("clear", true) -> SunGlowEffect()
+        condition.contains("rain", true) || condition.contains("drizzle", true) || condition.contains("shower", true) -> RainEffect()
+        condition.contains("snow", true) || condition.contains("sleet", true) || condition.contains("blizzard", true) -> SnowEffect()
+        condition.contains("cloud", true) || condition.contains("overcast", true) || condition.contains("mist", true) || condition.contains("fog", true) -> CloudEffect()
+        condition.contains("thunder", true) || condition.contains("storm", true) -> ThunderstormEffect()
+        condition.contains("clear", true) || condition.contains("sunny", true) -> SunEffect()
+        else -> {
+            // No special effect for other conditions
+        }
     }
 }
 
@@ -1246,21 +1209,62 @@ fun SnowEffect() {
 }
 
 @Composable
-fun FogEffect() {
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        drawRect(
-            brush = Brush.verticalGradient(
-                colors = listOf(Color(0x2266A0CB), Color.Transparent)
+fun CloudEffect() {
+    val clouds = remember {
+        List(8) {
+            Triple(
+                Random.nextFloat(),
+                Random.nextFloat() * 0.6f,
+                40f + Random.nextFloat() * 60f
             )
-        )
+        }
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "cloud")
+    val animationProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(30000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ), label = "cloud_progress"
+    )
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        clouds.forEach { (initialX, yPos, cloudSize) ->
+            val progress = (animationProgress + initialX) % 1f
+            val xPos = progress * (size.width + cloudSize * 2) - cloudSize
+
+            val alpha = when {
+                progress < 0.1f -> progress * 10
+                progress > 0.9f -> (1 - progress) * 10
+                else -> 1f
+            }
+
+            drawCircle(
+                color = Color.White.copy(alpha = 0.15f * alpha),
+                radius = cloudSize,
+                center = Offset(xPos, yPos * size.height)
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = 0.12f * alpha),
+                radius = cloudSize * 0.8f,
+                center = Offset(xPos + cloudSize * 0.6f, yPos * size.height)
+            )
+            drawCircle(
+                color = Color.White.copy(alpha = 0.1f * alpha),
+                radius = cloudSize * 0.7f,
+                center = Offset(xPos - cloudSize * 0.4f, yPos * size.height)
+            )
+        }
     }
 }
 
 @Composable
-fun SunGlowEffect() {
+fun SunEffect() {
     val infiniteTransition = rememberInfiniteTransition(label = "sun")
     val glow by infiniteTransition.animateFloat(
-        initialValue = 0.7f,
+        initialValue = 0.6f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(3000, easing = FastOutSlowInEasing),
@@ -1269,15 +1273,16 @@ fun SunGlowEffect() {
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val centerX = size.width / 2
-        val centerY = size.height / 4
-        val maxRadius = minOf(size.width, size.height) / 2.5f
+        val centerX = size.width * 0.85f
+        val centerY = size.height * 0.15f
+        val maxRadius = minOf(size.width, size.height) / 4f
 
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    Color(0x22FFEB3B),
-                    Color(0x11FFC107),
+                    Color(0x33FFEB3B),
+                    Color(0x22FFC107),
+                    Color(0x11FFB300),
                     Color.Transparent
                 ),
                 center = Offset(centerX, centerY),
@@ -1286,6 +1291,71 @@ fun SunGlowEffect() {
             radius = maxRadius * glow,
             center = Offset(centerX, centerY)
         )
+    }
+}
+
+@Composable
+fun ThunderstormEffect() {
+    val drops = remember {
+        List(80) {
+            Triple(
+                Random.nextFloat(),
+                Random.nextFloat(),
+                4f + Random.nextFloat() * 2f
+            )
+        }
+    }
+
+    val infiniteTransition = rememberInfiniteTransition(label = "thunderstorm")
+    val animationProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(600, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ), label = "rain_progress"
+    )
+
+    val lightningAlpha by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 3000
+                0f at 0
+                0f at 1000
+                1f at 1050
+                0f at 1100
+                0f at 2000
+                0.8f at 2030
+                0f at 2060
+            },
+            repeatMode = RepeatMode.Restart
+        ), label = "lightning"
+    )
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        // Rain effect
+        drops.forEach { (xPos, initialY, speed) ->
+            val progress = (animationProgress + initialY) % 1f
+            val yPos = progress * size.height
+
+            drawLine(
+                color = Color(0x8889CFF0),
+                start = Offset(xPos * size.width, yPos),
+                end = Offset(xPos * size.width, yPos + 30f),
+                strokeWidth = 2.5f,
+                cap = StrokeCap.Round
+            )
+        }
+
+        // Lightning effect
+        if (lightningAlpha > 0.1f) {
+            drawRect(
+                color = Color.White.copy(alpha = 0.3f * lightningAlpha),
+                size = size
+            )
+        }
     }
 }
 
