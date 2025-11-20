@@ -1,7 +1,11 @@
 package com.elnoah.haloweather
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
+import android.Manifest
+import android.app.Application
+import android.content.pm.PackageManager
+import android.location.Location
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -10,76 +14,119 @@ import com.elnoah.haloweather.api.LocationSuggestion
 import com.elnoah.haloweather.api.NetworkResponse
 import com.elnoah.haloweather.api.RetrofitInstance
 import com.elnoah.haloweather.api.WeatherModel
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 
-class WeatherViewModel : ViewModel() {
+class WeatherViewModel(application: Application) : AndroidViewModel(application) {
 
     private val weatherApi = RetrofitInstance.weatherApi
-    private val _weatherResult = MutableLiveData<NetworkResponse<WeatherModel>>()
+
+    private val _weatherResult = MutableLiveData<NetworkResponse<WeatherModel>>(NetworkResponse.Idle)
     val weatherResult: LiveData<NetworkResponse<WeatherModel>> = _weatherResult
 
-    // TAMBAHKAN INI - LiveData untuk suggestions
     private val _locationSuggestions = MutableLiveData<List<LocationSuggestion>>()
     val locationSuggestions: LiveData<List<LocationSuggestion>> = _locationSuggestions
 
-    private var searchJob: Job? = null
+    private val fusedLocationClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(application)
 
     fun getData(city: String) {
         _weatherResult.value = NetworkResponse.Loading
         viewModelScope.launch {
             try {
-                val response = weatherApi.getWeather(Constant.apiKey, city)
+                val response = weatherApi.getWeather(
+                    Constant.apiKey,
+                    city
+                )
                 if (response.isSuccessful) {
                     response.body()?.let {
                         _weatherResult.value = NetworkResponse.Success(it)
                     }
                 } else {
-                    val errorMessage = when (response.code()) {
-                        400 -> "Lokasi tidak valid. Coba masukkan nama kota yang lebih umum."
-                        401 -> "API Key tidak valid."
-                        403 -> "Akses ditolak. Periksa API key Anda."
-                        404 -> "Lokasi '$city' tidak ditemukan. Coba nama kota yang lebih besar."
-                        else -> "Gagal mengambil data cuaca (Error ${response.code()})"
-                    }
-                    _weatherResult.value = NetworkResponse.Error(errorMessage)
+                    _weatherResult.value = NetworkResponse.Error("Failed to load data")
                 }
             } catch (e: Exception) {
-                val errorMessage = when (e) {
-                    is java.net.UnknownHostException -> "Tidak ada koneksi internet"
-                    is java.net.SocketTimeoutException -> "Koneksi timeout. Periksa internet Anda."
-                    else -> "Gagal memuat data: ${e.localizedMessage}"
-                }
-                _weatherResult.value = NetworkResponse.Error(errorMessage)
+                _weatherResult.value = NetworkResponse.Error("Failed to load data: ${e.message}")
             }
         }
     }
 
-    // TAMBAHKAN INI - Search dengan debounce
-    fun searchLocationSuggestions(query: String) {
-        // Cancel previous search
-        searchJob?.cancel()
+    fun getCurrentLocationWeather() {
+        if (ContextCompat.checkSelfPermission(
+                getApplication(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                getApplication(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            getData("Surakarta")
+            return
+        }
 
-        if (query.length < 3) {
+        _weatherResult.value = NetworkResponse.Loading
+
+        try {
+            val cancellationTokenSource = CancellationTokenSource()
+            fusedLocationClient.getCurrentLocation(
+                Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                cancellationTokenSource.token
+            ).addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    getWeatherByCoordinates(location.latitude, location.longitude)
+                } else {
+                    getData("Surakarta")
+                }
+            }.addOnFailureListener {
+                getData("Surakarta")
+            }
+        } catch (e: Exception) {
+            getData("Surakarta")
+        }
+    }
+
+    private fun getWeatherByCoordinates(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            try {
+                val response = weatherApi.getWeather(
+                    Constant.apiKey,
+                    "$lat,$lon"
+                )
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        _weatherResult.value = NetworkResponse.Success(it)
+                    }
+                } else {
+                    _weatherResult.value = NetworkResponse.Error("Failed to load data")
+                }
+            } catch (e: Exception) {
+                _weatherResult.value = NetworkResponse.Error("Failed to load data: ${e.message}")
+            }
+        }
+    }
+
+    fun searchLocationSuggestions(query: String) {
+        if (query.length < 2) {
             _locationSuggestions.value = emptyList()
             return
         }
 
-        // Debounce 500ms
-        searchJob = viewModelScope.launch {
-            delay(500)
+        viewModelScope.launch {
             try {
-                val response = weatherApi.searchLocation(Constant.apiKey, query)
+                val response = weatherApi.searchLocation(
+                    Constant.apiKey,
+                    query
+                )
                 if (response.isSuccessful) {
-                    _locationSuggestions.value = response.body() ?: emptyList()
-                } else {
-                    _locationSuggestions.value = emptyList()
+                    response.body()?.let {
+                        _locationSuggestions.value = it
+                    }
                 }
-            } catch (e: Exception) {
-                Log.e("WeatherViewModel", "Search error: ${e.message}")
-                _locationSuggestions.value = emptyList()
-            }
+            } catch (_: Exception) {}
         }
     }
 
@@ -88,6 +135,6 @@ class WeatherViewModel : ViewModel() {
     }
 
     fun resetWeatherResult() {
-        _weatherResult.value = null
+        _weatherResult.value = NetworkResponse.Idle
     }
 }

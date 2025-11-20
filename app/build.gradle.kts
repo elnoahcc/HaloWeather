@@ -6,9 +6,7 @@ plugins {
 
 android {
     namespace = "com.elnoah.haloweather"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.elnoah.haloweather"
@@ -58,13 +56,20 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    // Retrofit
     val retrofitVersion = "3.0.0"
-    implementation ("com.squareup.retrofit2:retrofit:$retrofitVersion")
-    implementation("com.squareup.retrofit2:converter-gson:${retrofitVersion}")
+    implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
+    implementation("com.squareup.retrofit2:converter-gson:$retrofitVersion")
 
-    // Untuk observeAsState
+    // LiveData Compose
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")
 
-    // Untuk AsyncImage (Coil)
+    // Coil for AsyncImage
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // Google Play Services Location - NEW
+    implementation("com.google.android.gms:play-services-location:21.1.0")
+
+    // Material Icons Extended (untuk Location Icon jika belum ada)
+    implementation("androidx.compose.material:material-icons-extended:1.5.4")
 }
