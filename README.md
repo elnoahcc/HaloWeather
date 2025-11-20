@@ -1,10 +1,11 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/ddb31571-6d60-4a12-bb9b-6e27df553146" alt="HaloWeather Logo" width="200"/>
+  <img width="500" height="500" alt="halo_weather_logo (1)" src="https://github.com/user-attachments/assets/7fa5d65f-42b5-46b2-aaf0-6d63d1534d39" />
+
   <div align="center">
 
 </div>
   
-  **Aplikasi cuaca Android modern dengan Jetpack Compose**
+
   
   [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg)](https://kotlinlang.org)
   [![Compose](https://img.shields.io/badge/Compose-1.5.0-green.svg)](https://developer.android.com/jetpack/compose)
@@ -15,12 +16,8 @@
 
 ---
 
-## Tentang HaloWeather
-<div align="center">
-  <img width="521" height="499" alt="image" src="https://github.com/user-attachments/assets/15bdbc17-2ba0-4286-9a44-9be373669b7b" />
-</div>
 
-
+<h1 align="center" style="bold"> Aplikasi cuaca Android modern dengan Jetpack Compose </h1>
 HaloWeather adalah aplikasi cuaca Android native yang dirancang dengan pendekatan modern menggunakan Jetpack Compose. Aplikasi ini menyediakan informasi cuaca akurat dan real-time untuk lokasi manapun di dunia dengan antarmuka yang intuitif dan responsif.
 
 Dikembangkan menggunakan arsitektur MVVM dan best practices Android development, HaloWeather menghadirkan pengalaman pengguna yang smooth dengan performa optimal.
