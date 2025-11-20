@@ -15,7 +15,7 @@
 
 ---
 
-## 📱 Tentang HaloWeather
+## Tentang HaloWeather
 <div align="center">
   <img width="521" height="499" alt="image" src="https://github.com/user-attachments/assets/15bdbc17-2ba0-4286-9a44-9be373669b7b" />
 </div>
@@ -28,14 +28,14 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 
 
 
-## ✨ Fitur Utama
+## Fitur Utama
 
-### 🌤️ Informasi Cuaca Lengkap
+### Informasi Cuaca Lengkap
 - Suhu real-time dengan deskripsi kondisi cuaca
 - Prakiraan cuaca per jam dan harian
 - Icon cuaca dinamis yang menyesuaikan kondisi
 
-### 📊 Data Detail
+### Data Detail
 - **Kecepatan Angin** - Monitoring kecepatan dan arah angin
 - **Kelembapan** - Persentase kelembapan udara
 - **Tekanan Udara** - Data tekanan atmosfer
@@ -43,18 +43,18 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 - **UV Index** - Indeks radiasi ultraviolet
 - **Feels Like** - Temperatur yang dirasakan
 
-### 🎨 Antarmuka Modern
+### Antarmuka Modern
 - Material Design 3 implementation
 - Smooth animations dan transitions
 - Adaptive layout untuk berbagai ukuran layar
 - Dark mode & Light mode dengan theme switching otomatis
 
-### 🔍 Pencarian Lokasi
+### Pencarian Lokasi
 - Cari cuaca berdasarkan nama kota
 - Support pencarian global
 - Simpan lokasi favorit untuk akses cepat
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Core
 - **Kotlin** - 100% Kotlin codebase
@@ -75,7 +75,7 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 ### API
 - **[WeatherAPI.com](https://www.weatherapi.com/)** - Reliable weather data provider
 
-## 📋 Requirements
+## Requirements
 
 - **Android Studio**: Hedgehog (2023.1.1) atau lebih baru
 - **Java Development Kit**: JDK 17
@@ -135,7 +135,7 @@ android {
 2. Sync Gradle files
 3. Build dan run aplikasi di emulator atau device
 
-## 📁 Struktur Project
+## Struktur Project
 
 ```
 haloweather/
@@ -178,7 +178,7 @@ haloweather/
 └── settings.gradle.kts
 ```
 
-## 🏗️ Build Commands
+## Build Commands
 
 ### Development Build
 ```bash
@@ -207,7 +207,7 @@ haloweather/
 ./gradlew connectedAndroidTest
 ```
 
-## 🎯 Roadmap
+## Roadmap
 
 - [ ] Widget home screen
 - [ ] Notifikasi cuaca ekstrem
@@ -281,14 +281,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 👨‍💻 Developer
+## Developer
 
 **Your Name**
 - GitHub: [@yourusername](https://github.com/yourusername)
 - Email: your.email@example.com
 - LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [WeatherAPI.com](https://www.weatherapi.com/) - Weather data provider
 - [Material Design](https://m3.material.io/) - Design system & guidelines
@@ -299,8 +299,7 @@ SOFTWARE.
 
 <div align="center">
   
-**Made with ❤️ by HaloWeather Team**
+**Elnoah ©2025**
   
-⭐ Beri star jika project ini membantu!
-  
+
 </div>
