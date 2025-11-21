@@ -48,10 +48,10 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 - **Tekanan Udara** - Data tekanan atmosfer
 - **Visibility** - Jarak pandang dalam kilometer
 - **UV Index** - Indeks radiasi ultraviolet
-- **Terasa Seperti** - Temperatur yang dirasakan
+- **Temperatur** - Temperatur yang dirasakan
 
 ### Antarmuka Modern
-- Material Design 3 implementation
+- Implementasi Material 3
 - Smooth animations dan transitions
 - Adaptive layout untuk berbagai ukuran layar
 - Kompatibel UI Dark mode & Light mode
@@ -59,6 +59,7 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 ### Pencarian Lokasi
 - Cari cuaca berdasarkan nama kota
 - Support pencarian global
+- Support suggestion pencarian
 
 
 <br>
