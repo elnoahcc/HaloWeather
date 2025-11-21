@@ -12,4 +12,10 @@
     <string name="pressure">Pressure</string>
     <string name="feels_like">Feels like</string>
     <string name="visibility">Visibility</string>
+    <string name="cuaca_lokal_anda">Your Local Weather</string>
+    <string name="cari_lokasi_lainnya">Search Another Location</string>
+    <string name="detect_location">Detect your location</string>
+    <string name="failed_detect_location">Failed detect your location</string>
+    <string name="search_city">Find your Location</string>
+    <string name="forecast_3_days">Forecast 3 days</string>
 </resources>

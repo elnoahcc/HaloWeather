@@ -12,4 +12,10 @@
     <string name="pressure">Tekanan</string>
     <string name="feels_like">Terasa Seperti</string>
     <string name="visibility">Pandangan</string>
+    <string name="cuaca_lokal_anda">Cuaca Lokal Anda</string>
+    <string name="cari_lokasi_lainnya">Cari Lokasi Lainnya</string>
+    <string name="detect_location">Mendeteksi lokasi anda</string>
+    <string name="failed_detect_location">Gagal mendeteksi lokasi anda</string>
+    <string name="search_city">Cari Daerah Anda</string>
+    <string name="forecast_3_days">Forecase 3 Days</string>
 </resources>

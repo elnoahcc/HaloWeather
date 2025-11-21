@@ -13,16 +13,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Air
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,7 +40,20 @@ import com.elnoah.haloweather.api.NetworkResponse
 import com.elnoah.haloweather.api.WeatherModel
 import com.elnoah.haloweather.ui.theme.StackSansText
 import com.elnoah.haloweather.ui.theme.Typography
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.LocalConfiguration
+import android.content.res.Configuration
 import kotlin.random.Random
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import com.elnoah.haloweather.api.ForecastDay
+import java.text.SimpleDateFormat
+import java.util.Locale
+
+@Composable
+fun isLandscape(): Boolean {
+    val configuration = LocalConfiguration.current
+    return configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+}
 
 private val BlueLightScheme = lightColorScheme(
     primary = Color(0xFF1E88E5),
@@ -159,47 +175,54 @@ fun CurrentLocationWeatherCard(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Logo dengan animasi
-            Image(
-                painter = painterResource(id = R.drawable.halo_weather_icon),
-                contentDescription = "Halo Weather Logo",
+            // Header: Logo di kiri, Nama App di kanan
+            Row(
                 modifier = Modifier
-                    .size(80.dp)
-                    .graphicsLayer {
-                        scaleX = 1f + (glowAlpha * 0.1f)
-                        scaleY = 1f + (glowAlpha * 0.1f)
-                    }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                "Halo Weather",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = StackSansText,
-                color = Color.White,
-                style = androidx.compose.ui.text.TextStyle(
-                    shadow = Shadow(
-                        color = Color.Black.copy(alpha = 0.3f),
-                        offset = Offset(0f, 4f),
-                        blurRadius = 8f
-                    )
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 24.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Logo di kiri dengan animasi
+                Image(
+                    painter = painterResource(id = R.drawable.halo_weather_icon),
+                    contentDescription = "Halo Weather Logo",
+                    modifier = Modifier
+                        .size(60.dp)
+                        .graphicsLayer {
+                            scaleX = 1f + (glowAlpha * 0.1f)
+                            scaleY = 1f + (glowAlpha * 0.1f)
+                        }
                 )
-            )
 
-            Spacer(modifier = Modifier.height(6.dp))
+                // Nama aplikasi di kanan
+                Column(
+                    horizontalAlignment = Alignment.End
+                ) {
+                    Text(
+                        "Halo Weather",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = StackSansText,
+                        color = Color.White,
+                        style = androidx.compose.ui.text.TextStyle(
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.3f),
+                                offset = Offset(0f, 4f),
+                                blurRadius = 8f
+                            )
+                        )
+                    )
+                    Text(
+                        text = stringResource(id = R.string.cuaca_lokal_anda),
+                        fontSize = 12.sp,
+                        fontFamily = StackSansText,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+            }
 
-            Text(
-                "Cuaca Lokal Anda",
-                fontSize = 14.sp,
-                fontFamily = StackSansText,
-                color = Color.White.copy(alpha = 0.8f)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Main Weather Card dengan glassmorphism effect
             when (val result = weatherResult.value) {
@@ -231,7 +254,7 @@ fun CurrentLocationWeatherCard(
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    "Mendeteksi lokasi Anda...",
+                                    stringResource(id = R.string.detect_location),
                                     color = Color.White,
                                     fontFamily = StackSansText,
                                     fontSize = 14.sp
@@ -255,7 +278,7 @@ fun CurrentLocationWeatherCard(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                "Tidak dapat mendeteksi lokasi",
+                                stringResource(id = R.string.failed_detect_location),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFC62828),
@@ -306,7 +329,7 @@ fun CurrentLocationWeatherCard(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        "Cari Kota Lain",
+                        text = stringResource(id = R.string.cari_lokasi_lainnya),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         fontFamily = StackSansText,
@@ -326,61 +349,65 @@ fun CurrentLocationCard(
     glowAlpha: Float,
     onNavigateToSearch: () -> Unit
 ) {
-    val translatedCondition = WeatherTranslations.translate(data.current.condition.text)
+    val translatedCondition = remember(data.current.condition.text) {
+        WeatherTranslations.translate(data.current.condition.text)
+    }
     val isDark = isSystemInDarkTheme()
+    val isLandscape = isLandscape()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clickable { onNavigateToSearch() },
+            .clickable(
+                onClick = onNavigateToSearch,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header Card dengan Location
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = if (isDark) {
-                    Color(0xFF1565C0)
-                } else {
-                    Color(0xFF1E88E5)
-                }
+                containerColor = if (isDark) Color(0xFF1565C0) else Color(0xFF1E88E5)
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(if (isLandscape) 16.dp else 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = Color.White.copy(alpha = 0.2f),
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(if (isLandscape) 40.dp else 48.dp)
                 ) {
                     Icon(
                         Icons.Default.LocationOn,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(if (isLandscape) 10.dp else 12.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+
+                Spacer(modifier = Modifier.width(if (isLandscape) 12.dp else 16.dp))
+
                 Column {
                     Text(
-                        data.location.name,
-                        fontSize = 22.sp,
+                        text = data.location.name,
+                        fontSize = if (isLandscape) 18.sp else 22.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = StackSansText,
                         color = Color.White
                     )
                     Text(
-                        data.location.country,
-                        fontSize = 14.sp,
+                        text = data.location.country,
+                        fontSize = if (isLandscape) 12.sp else 14.sp,
                         fontFamily = StackSansText,
                         color = Color.White.copy(alpha = 0.85f)
                     )
@@ -388,99 +415,284 @@ fun CurrentLocationCard(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(if (isLandscape) 12.dp else 16.dp))
 
-        // Main Weather Card - Compact Version
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = if (isDark) {
-                    Color.White.copy(alpha = 0.12f)
-                } else {
-                    Color.White.copy(alpha = 0.95f)
-                }
+                containerColor = if (isDark) Color.White.copy(alpha = 0.12f)
+                else Color.White.copy(alpha = 0.95f)
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Left Side - Temperature
-                Column(
-                    horizontalAlignment = Alignment.Start
+            if (isLandscape) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        "${data.current.temp_c.toInt()}°",
-                        fontSize = 72.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isDark) Color.White else Color(0xFF1565C0),
-                        fontFamily = StackSansText,
-                        letterSpacing = (-3).sp
+                    Column(
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "${data.current.temp_c.toInt()}°",
+                            fontSize = 56.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = StackSansText,
+                            color = if (isDark) Color.White else Color(0xFF1565C0),
+                            letterSpacing = (-2).sp
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = translatedCondition,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = StackSansText,
+                            color = if (isDark) Color.White.copy(alpha = 0.85f)
+                            else Color(0xFF1A1C1E).copy(alpha = 0.75f)
+                        )
+                    }
+
+                    AsyncImage(
+                        model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Temperature Conversions
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        modifier = Modifier.weight(1f)
                     ) {
                         val tempF = TemperatureUtils.celsiusToFahrenheit(data.current.temp_c)
                         val tempK = TemperatureUtils.celsiusToKelvin(data.current.temp_c)
                         val tempR = TemperatureUtils.celsiusToReamur(data.current.temp_c)
 
-                        TempUnit(
-                            value = TemperatureUtils.formatTemp(tempF),
-                            unit = "°F",
-                            isDark = isDark
-                        )
+                        TempUnitCompact(TemperatureUtils.formatTemp(tempF), "°F", isDark)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        TempUnitCompact(TemperatureUtils.formatTemp(tempK), "K", isDark)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        TempUnitCompact(TemperatureUtils.formatTemp(tempR), "°R", isDark)
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(horizontalAlignment = Alignment.Start) {
                         Text(
-                            "•",
-                            color = if (isDark) Color.White.copy(alpha = 0.3f) else Color(0xFF1A1C1E).copy(alpha = 0.3f),
-                            fontSize = 12.sp
+                            text = "${data.current.temp_c.toInt()}°",
+                            fontSize = 72.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = StackSansText,
+                            color = if (isDark) Color.White else Color(0xFF1565C0),
+                            letterSpacing = (-3).sp
                         )
-                        TempUnit(
-                            value = TemperatureUtils.formatTemp(tempK),
-                            unit = "K",
-                            isDark = isDark
-                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        val tempF = TemperatureUtils.celsiusToFahrenheit(data.current.temp_c)
+                        val tempK = TemperatureUtils.celsiusToKelvin(data.current.temp_c)
+                        val tempR = TemperatureUtils.celsiusToReamur(data.current.temp_c)
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TempUnit(TemperatureUtils.formatTemp(tempF), "°F", isDark)
+                            TempUnit(TemperatureUtils.formatTemp(tempK), "K", isDark)
+                            TempUnit(TemperatureUtils.formatTemp(tempR), "°R", isDark)
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
                         Text(
-                            "•",
-                            color = if (isDark) Color.White.copy(alpha = 0.3f) else Color(0xFF1A1C1E).copy(alpha = 0.3f),
-                            fontSize = 12.sp
-                        )
-                        TempUnit(
-                            value = TemperatureUtils.formatTemp(tempR),
-                            unit = "°R",
-                            isDark = isDark
+                            translatedCondition,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = StackSansText,
+                            color = if (isDark) Color.White.copy(alpha = 0.85f)
+                            else Color(0xFF1A1C1E).copy(alpha = 0.75f)
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Text(
-                        translatedCondition,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        fontFamily = StackSansText,
-                        color = if (isDark) Color.White.copy(alpha = 0.85f) else Color(0xFF1A1C1E).copy(alpha = 0.75f)
+                    AsyncImage(
+                        model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
+                        contentDescription = null,
+                        modifier = Modifier.size(100.dp)
                     )
                 }
-
-                // Right Side - Weather Icon
-                AsyncImage(
-                    model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
-                    contentDescription = null,
-                    modifier = Modifier.size(100.dp)
-                )
             }
         }
+
+        data.forecast?.let { forecast ->
+            Spacer(modifier = Modifier.height(if (isLandscape) 12.dp else 16.dp))
+
+            ForecastCard(
+                forecastDays = forecast.forecastday,
+                isDark = isDark,
+                isLandscape = isLandscape
+            )
+        }
+    }
+}
+
+@Composable
+fun ForecastCard(
+    forecastDays: List<ForecastDay>,
+    isDark: Boolean,
+    isLandscape: Boolean
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isDark) Color.White.copy(alpha = 0.12f)
+            else Color.White.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(if (isLandscape) 16.dp else 20.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.forecast_3_days),
+                fontSize = if (isLandscape) 16.sp else 18.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = StackSansText,
+                color = if (isDark) Color.White else Color(0xFF1565C0)
+            )
+
+            Spacer(modifier = Modifier.height(if (isLandscape) 12.dp else 16.dp))
+
+            forecastDays
+                ?.take(3)
+                ?.withIndex()
+                ?.forEach { (index, day) ->
+
+
+
+            ForecastDayItem(
+                    forecastDay = day,
+                    isDark = isDark,
+                    isLandscape = isLandscape
+                )
+
+                if (index < 2) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    HorizontalDivider(
+                        color = if (isDark) Color.White.copy(alpha = 0.1f)
+                        else Color(0xFF1A1C1E).copy(alpha = 0.1f)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ForecastDayItem(
+    forecastDay: ForecastDay,
+    isDark: Boolean,
+    isLandscape: Boolean
+) {
+    val translatedCondition = remember(forecastDay.day.condition.text) {
+        WeatherTranslations.translate(forecastDay.day.condition.text)
+    }
+
+    val date = remember(forecastDay.date) {
+        try {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val outputFormat = SimpleDateFormat("EEE, dd MMM", Locale("id", "ID"))
+            val parsed = inputFormat.parse(forecastDay.date)
+            parsed?.let { outputFormat.format(it) } ?: forecastDay.date
+        } catch (_: Exception) {
+            forecastDay.date
+        }
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                date,
+                fontSize = if (isLandscape) 13.sp else 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = StackSansText,
+                color = if (isDark) Color.White else Color(0xFF1A1C1E)
+            )
+            Text(
+                translatedCondition,
+                fontSize = if (isLandscape) 11.sp else 12.sp,
+                fontFamily = StackSansText,
+                color = if (isDark) Color.White.copy(alpha = 0.7f)
+                else Color(0xFF1A1C1E).copy(alpha = 0.7f)
+            )
+        }
+
+        AsyncImage(
+            model = "https:${forecastDay.day.condition.icon}",
+            contentDescription = null,
+            modifier = Modifier.size(if (isLandscape) 40.dp else 48.dp)
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                "${forecastDay.day.maxtemp_c.toInt()}°",
+                fontSize = if (isLandscape) 16.sp else 18.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = StackSansText,
+                color = if (isDark) Color.White else Color(0xFF1565C0)
+            )
+            Text(
+                "${forecastDay.day.mintemp_c.toInt()}°",
+                fontSize = if (isLandscape) 14.sp else 16.sp,
+                fontFamily = StackSansText,
+                color = if (isDark) Color.White.copy(alpha = 0.5f)
+                else Color(0xFF1A1C1E).copy(alpha = 0.5f)
+            )
+        }
+    }
+}
+
+
+// Compact temperature unit untuk landscape
+@Composable
+fun TempUnitCompact(value: String, unit: String, isDark: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            value,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            fontFamily = StackSansText,
+            color = if (isDark) Color.White.copy(alpha = 0.7f)
+            else Color(0xFF1A1C1E).copy(alpha = 0.7f)
+        )
+        Text(
+            unit,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = StackSansText,
+            color = if (isDark) Color.White.copy(alpha = 0.5f)
+            else Color(0xFF1A1C1E).copy(alpha = 0.5f)
+        )
     }
 }
 
@@ -505,59 +717,84 @@ fun TempUnit(value: String, unit: String, isDark: Boolean) {
 }
 
 @Composable
-fun QuickInfoItemSimple(icon: String, label: String, value: String, isDark: Boolean) {
+fun QuickInfoItemSimple(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    isDark: Boolean
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(horizontal = 4.dp)
     ) {
-        Text(
-            icon,
-            fontSize = 24.sp
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            modifier = Modifier.size(24.dp),
+            tint = if (isDark) Color.White else Color(0xFF1565C0)
         )
+
         Spacer(modifier = Modifier.height(4.dp))
+
         Text(
-            value,
+            text = value,
             fontSize = 15.sp,
             fontWeight = FontWeight.SemiBold,
             fontFamily = StackSansText,
             color = if (isDark) Color.White else Color(0xFF1565C0)
         )
+
         Text(
-            label,
+            text = label,
             fontSize = 10.sp,
             fontFamily = StackSansText,
-            color = if (isDark) Color.White.copy(alpha = 0.6f) else Color(0xFF1A1C1E).copy(alpha = 0.6f),
+            color = if (isDark) Color.White.copy(alpha = 0.6f)
+            else Color(0xFF1A1C1E).copy(alpha = 0.6f),
             textAlign = TextAlign.Center
         )
     }
 }
 
+
 @Composable
-fun QuickInfoItem(icon: String, label: String, value: String, isDark: Boolean) {
+fun QuickInfoItem(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    isDark: Boolean
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(horizontal = 8.dp)
     ) {
-        Text(
-            icon,
-            fontSize = 20.sp
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            modifier = Modifier.size(24.dp),
+            tint = if (isDark) Color.White else Color(0xFF1565C0)
         )
+
         Spacer(modifier = Modifier.height(4.dp))
+
         Text(
-            value,
+            text = value,
             fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.SemiBold,
             fontFamily = StackSansText,
             color = if (isDark) Color.White else Color(0xFF1565C0)
         )
+
         Text(
-            label,
+            text = label,
             fontSize = 10.sp,
             fontFamily = StackSansText,
-            color = if (isDark) Color.White.copy(alpha = 0.7f) else Color(0xFF1A1C1E).copy(alpha = 0.6f)
+            color = if (isDark) Color.White.copy(alpha = 0.6f)
+            else Color(0xFF1A1C1E).copy(alpha = 0.6f),
+            textAlign = TextAlign.Center
         )
     }
 }
+
 
 @Composable
 fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
@@ -631,24 +868,28 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
         ) {
 
             if (!hasSearched) {
-                // Logo untuk state idle
-                Image(
-                    painter = painterResource(id = R.drawable.halo_weather_icon),
-                    contentDescription = "Halo Weather Logo",
-                    modifier = Modifier.size(100.dp)
-                )
+                // Header: Logo di kiri, Nama App di kanan
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.halo_weather_icon),
+                        contentDescription = "Halo Weather Logo",
+                        modifier = Modifier.size(60.dp)
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    "Cari Kota",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = StackSansText,
-                    color = Color.White
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
+                    Text(
+                        stringResource(id = R.string.search_city),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = StackSansText,
+                        color = Color.White
+                    )
+                }
             } else {
                 Spacer(modifier = Modifier.height(40.dp))
             }
@@ -834,7 +1075,11 @@ fun SuggestionItem(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable(
+                onClick = onClick,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ),
         color = Color.Transparent
     ) {
         Row(
@@ -871,65 +1116,62 @@ fun SuggestionItem(
 
 @Composable
 fun WeatherDetailsModern(data: WeatherModel) {
-    val translatedCondition = WeatherTranslations.translate(data.current.condition.text)
-
+    val translatedCondition = remember(data.current.condition.text) {
+        WeatherTranslations.translate(data.current.condition.text)
+    }
     val tempCelsius = data.current.temp_c
     val tempFahrenheit = TemperatureUtils.celsiusToFahrenheit(tempCelsius)
     val tempKelvin = TemperatureUtils.celsiusToKelvin(tempCelsius)
     val tempReamur = TemperatureUtils.celsiusToReamur(tempCelsius)
-
     val isDark = isSystemInDarkTheme()
+    val isLandscape = isLandscape()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(vertical = 8.dp),
+            .padding(vertical = if (isLandscape) 4.dp else 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Header Card dengan Location
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(if (isLandscape) 20.dp else 24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = if (isDark) {
-                    Color(0xFF1565C0)
-                } else {
-                    Color(0xFF1E88E5)
-                }
+                containerColor = if (isDark) Color(0xFF1565C0) else Color(0xFF1E88E5)
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(if (isLandscape) 16.dp else 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = Color.White.copy(alpha = 0.2f),
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(if (isLandscape) 40.dp else 48.dp)
                 ) {
                     Icon(
                         Icons.Default.LocationOn,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(if (isLandscape) 10.dp else 12.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(if (isLandscape) 12.dp else 16.dp))
                 Column {
                     Text(
                         data.location.name,
-                        fontSize = 22.sp,
+                        fontSize = if (isLandscape) 18.sp else 22.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = StackSansText,
                         color = Color.White
                     )
                     Text(
                         data.location.country,
-                        fontSize = 14.sp,
+                        fontSize = if (isLandscape) 12.sp else 14.sp,
                         fontFamily = StackSansText,
                         color = Color.White.copy(alpha = 0.85f)
                     )
@@ -937,12 +1179,12 @@ fun WeatherDetailsModern(data: WeatherModel) {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(if (isLandscape) 12.dp else 16.dp))
 
         // Main Weather Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(if (isLandscape) 20.dp else 24.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (isDark) {
                     Color.White.copy(alpha = 0.12f)
@@ -952,110 +1194,165 @@ fun WeatherDetailsModern(data: WeatherModel) {
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Temperature
-                Text(
-                    "${tempCelsius.toInt()}°",
-                    fontSize = 96.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isDark) Color.White else Color(0xFF1565C0),
-                    fontFamily = StackSansText,
-                    letterSpacing = (-4).sp
-                )
-
-                // Temperature Conversions
+            if (isLandscape) {
+                // LANDSCAPE: Horizontal layout
                 Row(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    TempUnit(
-                        value = TemperatureUtils.formatTemp(tempFahrenheit),
-                        unit = "°F",
-                        isDark = isDark
-                    )
-                    Text(
-                        "•",
-                        color = if (isDark) Color.White.copy(alpha = 0.3f) else Color(0xFF1A1C1E).copy(alpha = 0.3f),
-                        fontSize = 14.sp
-                    )
-                    TempUnit(
-                        value = TemperatureUtils.formatTemp(tempKelvin),
-                        unit = "K",
-                        isDark = isDark
-                    )
-                    Text(
-                        "•",
-                        color = if (isDark) Color.White.copy(alpha = 0.3f) else Color(0xFF1A1C1E).copy(alpha = 0.3f),
-                        fontSize = 14.sp
-                    )
-                    TempUnit(
-                        value = TemperatureUtils.formatTemp(tempReamur),
-                        unit = "°R",
-                        isDark = isDark
-                    )
+                    // Left: Temperature & Icon
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(horizontalAlignment = Alignment.Start) {
+                            Text(
+                                "${tempCelsius.toInt()}°",
+                                fontSize = 64.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isDark) Color.White else Color(0xFF1565C0),
+                                fontFamily = StackSansText,
+                                letterSpacing = (-3).sp
+                            )
+                            Text(
+                                translatedCondition,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = StackSansText,
+                                color = if (isDark) Color.White.copy(alpha = 0.9f)
+                                else Color(0xFF1A1C1E).copy(alpha = 0.85f)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        AsyncImage(
+                            model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
+                            contentDescription = null,
+                            modifier = Modifier.size(90.dp)
+                        )
+                    }
+
+                    // Right: Quick Info
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        // Temperature Conversions
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            TempUnit(TemperatureUtils.formatTemp(tempFahrenheit), "°F", isDark)
+                            Text("•", color = if (isDark) Color.White.copy(alpha = 0.3f)
+                            else Color(0xFF1A1C1E).copy(alpha = 0.3f), fontSize = 12.sp)
+                            TempUnit(TemperatureUtils.formatTemp(tempKelvin), "K", isDark)
+                            Text("•", color = if (isDark) Color.White.copy(alpha = 0.3f)
+                            else Color(0xFF1A1C1E).copy(alpha = 0.3f), fontSize = 12.sp)
+                            TempUnit(TemperatureUtils.formatTemp(tempReamur), "°R", isDark)
+                        }
+
+                        HorizontalDivider(
+                            color = if (isDark) Color.White.copy(alpha = 0.2f)
+                            else Color(0xFF1A1C1E).copy(alpha = 0.2f)
+                        )
+
+                        // Quick stats
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            QuickStat(stringResource(R.string.humidity), "${data.current.humidity}%", isDark)
+                            QuickStat(stringResource(R.string.wind), "${data.current.wind_kph.toInt()} km/h", isDark)
+                            QuickStat(stringResource(R.string.visibility), "${data.current.vis_km} km", isDark)
+                        }
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Weather Icon
-                AsyncImage(
-                    model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
-                    contentDescription = null,
-                    modifier = Modifier.size(120.dp)
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    translatedCondition,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    fontFamily = StackSansText,
-                    color = if (isDark) Color.White.copy(alpha = 0.9f) else Color(0xFF1A1C1E).copy(alpha = 0.85f)
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                // Quick Info Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+            } else {
+                // PORTRAIT: Original vertical layout
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    QuickInfoItemSimple(
-                        icon = "💧",
-                        label = stringResource(id = R.string.humidity),
-                        value = "${data.current.humidity}%",
-                        isDark = isDark
+                    Text(
+                        "${tempCelsius.toInt()}°",
+                        fontSize = 96.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isDark) Color.White else Color(0xFF1565C0),
+                        fontFamily = StackSansText,
+                        letterSpacing = (-4).sp
                     )
 
-                    QuickInfoItemSimple(
-                        icon = "💨",
-                        label = "Angin",
-                        value = "${data.current.wind_kph.toInt()} km/h",
-                        isDark = isDark
+                    Row(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        TempUnit(TemperatureUtils.formatTemp(tempFahrenheit), "°F", isDark)
+                        Text("•", color = if (isDark) Color.White.copy(alpha = 0.3f)
+                        else Color(0xFF1A1C1E).copy(alpha = 0.3f), fontSize = 14.sp)
+                        TempUnit(TemperatureUtils.formatTemp(tempKelvin), "K", isDark)
+                        Text("•", color = if (isDark) Color.White.copy(alpha = 0.3f)
+                        else Color(0xFF1A1C1E).copy(alpha = 0.3f), fontSize = 14.sp)
+                        TempUnit(TemperatureUtils.formatTemp(tempReamur), "°R", isDark)
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    AsyncImage(
+                        model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
+                        contentDescription = null,
+                        modifier = Modifier.size(120.dp)
                     )
 
-                    QuickInfoItemSimple(
-                        icon = "👁️",
-                        label = "Jarak Pandang",
-                        value = "${data.current.vis_km} km",
-                        isDark = isDark
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        translatedCondition,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = StackSansText,
+                        color = if (isDark) Color.White.copy(alpha = 0.9f)
+                        else Color(0xFF1A1C1E).copy(alpha = 0.85f)
                     )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        QuickInfoItemSimple(
+                            Icons.Default.WaterDrop,
+                            stringResource(R.string.humidity),
+                            "${data.current.humidity}%",
+                            isDark
+                        )
+                        QuickInfoItemSimple(
+                            Icons.Default.Air,
+                            stringResource(R.string.wind),
+                            "${data.current.wind_kph.toInt()} km/h",
+                            isDark
+                        )
+                        QuickInfoItemSimple(
+                            Icons.Default.Visibility,
+                            stringResource(R.string.visibility),
+                            "${data.current.vis_km} km",
+                            isDark
+                        )
+                    }
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(if (isLandscape) 12.dp else 16.dp))
 
-        // Additional Info Card
+        // Additional Info Card - Compact untuk landscape
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(if (isLandscape) 20.dp else 24.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (isDark) {
                     Color.White.copy(alpha = 0.12f)
@@ -1065,34 +1362,52 @@ fun WeatherDetailsModern(data: WeatherModel) {
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
+            Column(modifier = Modifier.padding(if (isLandscape) 20.dp else 24.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    WeatherKeyValModern(
-                        stringResource(id = R.string.uv_index),
-                        data.current.uv.toString(),
-                        isDark
-                    )
-                    WeatherKeyValModern(stringResource(id = R.string.precipitation), "${data.current.precip_mm} mm", isDark)
-                    WeatherKeyValModern(stringResource(id = R.string.pressure), "${data.current.pressure_mb} mb", isDark)
+                    WeatherKeyValModern(stringResource(R.string.uv_index), data.current.uv.toString(), isDark)
+                    WeatherKeyValModern(stringResource(R.string.precipitation), "${data.current.precip_mm} mm", isDark)
+                    WeatherKeyValModern(stringResource(R.string.pressure), "${data.current.pressure_mb} mb", isDark)
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(if (isLandscape) 16.dp else 20.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    WeatherKeyValModern(stringResource(id = R.string.feels_like), "${data.current.feelslike_c}°C", isDark)
-                    WeatherKeyValModern(stringResource(id = R.string.time), data.location.localtime.split(" ")[1], isDark)
-                    WeatherKeyValModern(stringResource(id = R.string.date), data.location.localtime.split(" ")[0], isDark)
+                    WeatherKeyValModern(stringResource(R.string.feels_like), "${data.current.feelslike_c}°C", isDark)
+                    WeatherKeyValModern(stringResource(R.string.time), data.location.localtime.split(" ")[1], isDark)
+                    WeatherKeyValModern(stringResource(R.string.date), data.location.localtime.split(" ")[0], isDark)
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(if (isLandscape) 8.dp else 16.dp))
+    }
+}
+
+@Composable
+fun QuickStat(label: String, value: String, isDark: Boolean) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            value,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = StackSansText,
+            color = if (isDark) Color.White else Color(0xFF1565C0)
+        )
+        Text(
+            label,
+            fontSize = 10.sp,
+            fontFamily = StackSansText,
+            color = if (isDark) Color.White.copy(alpha = 0.6f)
+            else Color(0xFF1A1C1E).copy(alpha = 0.6f)
+        )
     }
 }
 

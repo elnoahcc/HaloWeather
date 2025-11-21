@@ -1,90 +1,117 @@
 package com.elnoah.haloweather
 
 object WeatherTranslations {
-
-    private val weatherConditions = mapOf(
-        // Clear
+    private val translations = mapOf(
+        // Clear/Sunny - Tambahkan variasi
         "sunny" to "Cerah",
         "clear" to "Cerah",
-
-        // Clouds
         "partly cloudy" to "Berawan Sebagian",
+        "fair" to "Cerah",
+
+        // Cloudy
         "cloudy" to "Berawan",
         "overcast" to "Mendung",
-        "mist" to "Berkabut",
-        "fog" to "Kabut",
-        "foggy" to "Berkabut",
+        "mostly cloudy" to "Kebanyakan Berawan",
 
-        // Rain
+        // Rain - Tambahkan lebih banyak variasi
+        "rain" to "Hujan",
+        "light rain" to "Hujan Ringan",
+        "moderate rain" to "Hujan Sedang",
+        "heavy rain" to "Hujan Lebat",
+        "light rain shower" to "Hujan Rintik-rintik",
+        "moderate or heavy rain shower" to "Hujan Sedang atau Lebat",
+        "torrential rain shower" to "Hujan Deras",
         "patchy rain possible" to "Kemungkinan Hujan",
         "patchy rain nearby" to "Hujan di Sekitar",
+        "light freezing rain" to "Hujan Beku Ringan",
+        "moderate or heavy freezing rain" to "Hujan Beku Sedang atau Lebat",
+
+        // Drizzle
+        "drizzle" to "Gerimis",
+        "light drizzle" to "Gerimis Ringan",
         "patchy light drizzle" to "Gerimis Ringan Sebagian",
-        "light drizzle" to "Gerimis",
         "freezing drizzle" to "Gerimis Beku",
         "heavy freezing drizzle" to "Gerimis Beku Lebat",
-        "patchy light rain" to "Hujan Ringan Sebagian",
-        "light rain" to "Hujan Ringan",
-        "moderate rain at times" to "Hujan Sedang",
-        "moderate rain" to "Hujan Sedang",
-        "heavy rain at times" to "Hujan Lebat",
-        "heavy rain" to "Hujan Lebat",
-        "light rain shower" to "Hujan Rintik",
-        "moderate or heavy rain shower" to "Hujan Deras",
-        "torrential rain shower" to "Hujan Sangat Deras",
-        "light freezing rain" to "Hujan Beku Ringan",
-        "moderate or heavy freezing rain" to "Hujan Beku Lebat",
 
-        // Snow
-        "patchy snow possible" to "Kemungkinan Salju",
-        "blowing snow" to "Salju Bertiup",
-        "blizzard" to "Badai Salju",
-        "patchy light snow" to "Salju Ringan Sebagian",
-        "light snow" to "Salju Ringan",
-        "patchy moderate snow" to "Salju Sedang Sebagian",
-        "moderate snow" to "Salju Sedang",
-        "patchy heavy snow" to "Salju Lebat Sebagian",
-        "heavy snow" to "Salju Lebat",
-        "light snow showers" to "Hujan Salju Ringan",
-        "moderate or heavy snow showers" to "Hujan Salju Lebat",
-
-        // Sleet
-        "patchy sleet possible" to "Kemungkinan Hujan Es",
-        "light sleet" to "Hujan Es Ringan",
-        "moderate or heavy sleet" to "Hujan Es Lebat",
-        "light sleet showers" to "Hujan Es Ringan",
-        "moderate or heavy sleet showers" to "Hujan Es Lebat",
-
-        // Ice Pellets
-        "ice pellets" to "Butiran Es",
-        "light showers of ice pellets" to "Hujan Butiran Es Ringan",
-        "moderate or heavy showers of ice pellets" to "Hujan Butiran Es Lebat",
+        // Mist/Fog
+        "mist" to "Kabut Tipis",
+        "fog" to "Kabut",
+        "freezing fog" to "Kabut Beku",
+        "patchy fog" to "Kabut Sebagian",
 
         // Thunder
         "thundery outbreaks possible" to "Kemungkinan Petir",
+        "thunderstorm" to "Badai Petir",
+        "moderate or heavy rain with thunder" to "Hujan Sedang atau Lebat Disertai Petir",
         "patchy light rain with thunder" to "Hujan Ringan Disertai Petir",
-        "moderate or heavy rain with thunder" to "Hujan Lebat Disertai Petir",
         "patchy light snow with thunder" to "Salju Ringan Disertai Petir",
-        "moderate or heavy snow with thunder" to "Salju Lebat Disertai Petir",
+        "moderate or heavy snow with thunder" to "Salju Sedang atau Lebat Disertai Petir",
 
-        // Freezing Fog
-        "patchy freezing drizzle possible" to "Kemungkinan Gerimis Beku",
-        "freezing fog" to "Kabut Beku"
+        // Snow
+        "snow" to "Salju",
+        "light snow" to "Salju Ringan",
+        "moderate snow" to "Salju Sedang",
+        "heavy snow" to "Salju Lebat",
+        "patchy light snow" to "Salju Ringan Sebagian",
+        "patchy moderate snow" to "Salju Sedang Sebagian",
+        "patchy heavy snow" to "Salju Lebat Sebagian",
+        "light snow showers" to "Hujan Salju Ringan",
+        "moderate or heavy snow showers" to "Hujan Salju Sedang atau Lebat",
+        "blizzard" to "Badai Salju",
+        "blowing snow" to "Salju Bertiup",
+
+        // Sleet
+        "sleet" to "Hujan Es",
+        "light sleet" to "Hujan Es Ringan",
+        "moderate or heavy sleet" to "Hujan Es Sedang atau Lebat",
+        "light sleet showers" to "Hujan Es Ringan",
+        "moderate or heavy sleet showers" to "Hujan Es Sedang atau Lebat",
+
+        // Ice
+        "ice pellets" to "Hujan Es",
+        "light showers of ice pellets" to "Hujan Es Ringan",
+        "moderate or heavy showers of ice pellets" to "Hujan Es Sedang atau Lebat",
+
+        // Wind
+        "windy" to "Berangin"
     )
 
     /**
-     * Translate English weather condition to Indonesian
-     * @param condition Weather condition text from API
-     * @return Translated condition or original if not found
+     * Translate weather condition based on system language
+     * @param condition Original weather condition from API
+     * @param locale System locale (e.g., "id" for Indonesian, "en" for English)
+     * @return Translated condition if locale is Indonesian, original if English
      */
-    fun translate(condition: String): String {
-        val lowerCondition = condition.lowercase().trim()
-        return weatherConditions[lowerCondition] ?: condition
-    }
+    fun translate(condition: String, locale: String = java.util.Locale.getDefault().language): String {
+        // Jika bahasa sistem BUKAN Indonesia, return kondisi asli (Inggris)
+        if (locale != "id" && locale != "in") {
+            android.util.Log.d("WeatherTranslations", "System locale: $locale - Using original English: '$condition'")
+            return condition
+        }
 
-    /**
-     * Check if translation exists
-     */
-    fun hasTranslation(condition: String): Boolean {
-        return weatherConditions.containsKey(condition.lowercase().trim())
+        // Jika bahasa Indonesia, lakukan translate
+        val normalizedCondition = condition.trim().lowercase()
+
+        android.util.Log.d("WeatherTranslations", "System locale: $locale - Translating to Indonesian")
+        android.util.Log.d("WeatherTranslations", "Original: '$condition' | Normalized: '$normalizedCondition'")
+
+        // Coba exact match
+        val exactMatch = translations[normalizedCondition]
+        if (exactMatch != null) {
+            android.util.Log.d("WeatherTranslations", "✓ Exact match found: '$exactMatch'")
+            return exactMatch
+        }
+
+        // Coba partial match
+        for ((key, value) in translations) {
+            if (normalizedCondition.contains(key)) {
+                android.util.Log.d("WeatherTranslations", "✓ Partial match found: '$value' (key: '$key')")
+                return value
+            }
+        }
+
+        // Jika tidak ketemu terjemahan, return asli
+        android.util.Log.w("WeatherTranslations", "✗ No translation found, using original")
+        return condition
     }
 }

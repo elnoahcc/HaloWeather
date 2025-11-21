@@ -37,9 +37,10 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         _weatherResult.value = NetworkResponse.Loading
         viewModelScope.launch {
             try {
-                val response = weatherApi.getWeather(
+                val response = weatherApi.getForecastWeather(
                     Constant.apiKey,
-                    city
+                    city = city,
+                    days = 3
                 )
                 if (response.isSuccessful) {
                     response.body()?.let {
