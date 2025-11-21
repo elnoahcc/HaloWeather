@@ -280,10 +280,10 @@ SOFTWARE.
 
 ## Developer
 
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
+**Elnoah Agustinus Markus Manalu**
+- GitHub: [@elnoahcc](https://github.com/elnoahcc)
+- Email: elnoahamm@gmail.com
+- LinkedIn: [elnoahmanalu](https://linkedin.com/in/elnoahmanalu)
 
 ## Acknowledgments
 
