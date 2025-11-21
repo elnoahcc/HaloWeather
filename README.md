@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="500" height="500" alt="halo_weather_logo (1)" src="https://github.com/user-attachments/assets/7fa5d65f-42b5-46b2-aaf0-6d63d1534d39" />
+  <img width="250" height="250" alt="halo_weather_logo (1)" src="https://github.com/user-attachments/assets/7fa5d65f-42b5-46b2-aaf0-6d63d1534d39" />
 
   <div align="center">
 
@@ -23,9 +23,19 @@ HaloWeather adalah aplikasi cuaca Android native yang dirancang dengan pendekata
 Dikembangkan menggunakan arsitektur MVVM dan best practices Android development, HaloWeather menghadirkan pengalaman pengguna yang smooth dengan performa optimal.
 
 
+<br>
 
 
 ## Fitur Utama
+<table align="center">
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/52f5f7d9-ffb8-4422-bc98-038f8d1349a0" width="250"></td>
+    <td><img src="https://github.com/user-attachments/assets/da6c8833-6ce9-4287-9e2a-92e4fc925af6" width="250"></td>
+    <td><img src="https://github.com/user-attachments/assets/e8204172-0fb8-49f3-994b-39d91614d1d0" width="250"></td>
+  </tr>
+</table>
+
+
 
 ### Informasi Cuaca Lengkap
 - Suhu real-time dengan deskripsi kondisi cuaca
@@ -38,18 +48,20 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 - **Tekanan Udara** - Data tekanan atmosfer
 - **Visibility** - Jarak pandang dalam kilometer
 - **UV Index** - Indeks radiasi ultraviolet
-- **Feels Like** - Temperatur yang dirasakan
+- **Terasa Seperti** - Temperatur yang dirasakan
 
 ### Antarmuka Modern
 - Material Design 3 implementation
 - Smooth animations dan transitions
 - Adaptive layout untuk berbagai ukuran layar
-- Dark mode & Light mode dengan theme switching otomatis
+- Kompatibel UI Dark mode & Light mode
 
 ### Pencarian Lokasi
 - Cari cuaca berdasarkan nama kota
 - Support pencarian global
-- Simpan lokasi favorit untuk akses cepat
+
+
+<br>
 
 ## Tech Stack
 
@@ -72,14 +84,18 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 ### API
 - **[WeatherAPI.com](https://www.weatherapi.com/)** - Reliable weather data provider
 
+<br>
+
 ## Requirements
 
 - **Android Studio**: Hedgehog (2023.1.1) atau lebih baru
 - **Java Development Kit**: JDK 17
 - **Gradle**: 8.0+
 - **Minimum SDK**: 24 (Android 7.0 Nougat)
-- **Target SDK**: 34 (Android 14)
-- **Compile SDK**: 34
+- **Target SDK**: 36 (Android 15)
+- **Compile SDK**: 36
+
+  <br>
 
 ## 🚀 Getting Started
 
@@ -111,19 +127,19 @@ WEATHER_API_KEY=your_api_key_here
 
 Buka file `build.gradle.kts` dan pastikan konfigurasi sudah sesuai:
 
-```kotlin
-android {
-    namespace = "com.yourpackage.haloweather"
-    compileSdk = 34
+```android {
+    namespace = "com.elnoah.haloweather"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.yourpackage.haloweather"
-        minSdk = 24
-        targetSdk = 34
+        applicationId = "com.elnoah.haloweather"
+        minSdk = 28
+        targetSdk = 36
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-}
 ```
 
 ### 4. Sync & Run
@@ -138,41 +154,26 @@ android {
 haloweather/
 │
 ├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/yourpackage/haloweather/
-│   │   │   │   │
-│   │   │   │   ├── data/
-│   │   │   │   │   ├── api/           # API service interfaces
-│   │   │   │   │   ├── model/         # Data models & DTOs
-│   │   │   │   │   └── repository/    # Repository pattern implementation
-│   │   │   │   │
-│   │   │   │   ├── ui/
-│   │   │   │   │   ├── screens/       # Composable screens
-│   │   │   │   │   ├── components/    # Reusable UI components
-│   │   │   │   │   └── theme/         # Theme, colors, typography
-│   │   │   │   │
-│   │   │   │   ├── viewmodel/         # ViewModels untuk state management
-│   │   │   │   │
-│   │   │   │   ├── navigation/        # Navigation graph
-│   │   │   │   │
-│   │   │   │   └── utils/             # Helper functions & extensions
-│   │   │   │
-│   │   │   ├── res/
-│   │   │   │   ├── drawable/          # Icons & drawables
-│   │   │   │   ├── values/            # Strings, dimensions, colors
-│   │   │   │   └── ...
-│   │   │   │
-│   │   │   └── AndroidManifest.xml
+│   ├── src/main/java/com/elnoah/haloweather/
+│   │   ├── data/
+│   │   │   ├── api/
+│   │   │   ├── model/
+│   │   │   └── repository/
 │   │   │
-│   │   └── test/                      # Unit tests
-│   │       └── androidTest/           # Instrumentation tests
+│   │   ├── ui/
+│   │   │   ├── screens/
+│   │   │   ├── components/
+│   │   │   └── theme/
+│   │   │
+│   │   ├── viewmodel/
+│   │   │
+│   │   ├── navigation/
+│   │   │
+│   │   └── utils/
 │   │
-│   └── build.gradle.kts
-│
-├── gradle/
-├── build.gradle.kts
-└── settings.gradle.kts
+│   ├── res/
+│   └── AndroidManifest.xml
+
 ```
 
 ## Build Commands
@@ -204,60 +205,14 @@ haloweather/
 ./gradlew connectedAndroidTest
 ```
 
-## Roadmap
-
-- [ ] Widget home screen
-- [ ] Notifikasi cuaca ekstrem
-- [ ] Grafik prakiraan interaktif
-- [ ] Multi-bahasa support
-- [ ] Offline mode dengan caching
-- [ ] Location history
-- [ ] Share cuaca ke social media
-- [ ] Wear OS companion app
-
-## 🤝 Kontribusi
-
-Kontribusi sangat diterima dan diapresiasi! Baik itu bug report, feature request, atau pull request.
-
-### Cara Berkontribusi
-
-1. **Fork** repository ini
-2. **Create branch** untuk fitur Anda
-   ```bash
-   git checkout -b feature/fitur-keren
-   ```
-3. **Commit** perubahan Anda
-   ```bash
-   git commit -m 'Menambahkan fitur keren'
-   ```
-4. **Push** ke branch
-   ```bash
-   git push origin feature/fitur-keren
-   ```
-5. **Create Pull Request** dengan deskripsi yang jelas
-
-### Guidelines
-
-- Ikuti coding style yang sudah ada
-- Tulis unit test untuk fitur baru
-- Update dokumentasi jika diperlukan
-- Pastikan semua test passing sebelum submit PR
-
-## 📝 Changelog
-
-### Version 1.0.0 (Initial Release)
-- ✨ Tampilan cuaca real-time
-- ✨ Detail informasi cuaca lengkap
-- ✨ Dark mode & Light mode
-- ✨ Pencarian lokasi
-- ✨ Material Design 3 UI
+<br>
 
 ## 📄 License
 
 ```
 MIT License
 
-Copyright (c) 2024 HaloWeather
+Copyright (c) 2025 Elnoah
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
