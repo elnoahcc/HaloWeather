@@ -13,7 +13,7 @@ data class Location(
     val localtime: String = "",
 
     @SerializedName("localtime_epoch")
-    val localtime_epoch: Long = 0,  // Ubah dari Int ke Long untuk safety
+    val localtime_epoch: Long = 0,
 
     @SerializedName("lon")
     val lon: Double = 0.0,

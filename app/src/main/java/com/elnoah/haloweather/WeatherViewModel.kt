@@ -103,9 +103,9 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private fun getWeatherByCoordinates(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val response = weatherApi.getForecastWeather(  // ← PERBAIKAN
+                val response = weatherApi.getForecastWeather(
                     Constant.apiKey,
-                    city = "$lat,$lon",  // Parameter tetap bisa pakai koordinat
+                    city = "$lat,$lon",
                     days = 3
                 )
                 if (response.isSuccessful) {

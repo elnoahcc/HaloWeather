@@ -15,12 +15,12 @@ data class Current(
     @SerializedName("dewpoint_f")
     val dewpoint_f: Double = 0.0,
 
-    // PROBLEM FIELDS - UBAH KE NULLABLE ATAU DOUBLE
+
     @SerializedName("diff_rad")
-    val diff_rad: Double? = null,  // Ubah dari Int ke Double nullable
+    val diff_rad: Double? = null,
 
     @SerializedName("dni")
-    val dni: Double? = null,  // Ubah dari Int ke Double nullable
+    val dni: Double? = null,
 
     @SerializedName("feelslike_c")
     val feelslike_c: Double = 0.0,
@@ -29,7 +29,7 @@ data class Current(
     val feelslike_f: Double = 0.0,
 
     @SerializedName("gti")
-    val gti: Double? = null,  // Ubah dari Int ke Double nullable
+    val gti: Double? = null,
 
     @SerializedName("gust_kph")
     val gust_kph: Double = 0.0,
@@ -67,9 +67,9 @@ data class Current(
     @SerializedName("pressure_mb")
     val pressure_mb: Double = 0.0,
 
-    // PROBLEM FIELD - UBAH KE NULLABLE ATAU DOUBLE
+
     @SerializedName("short_rad")
-    val short_rad: Double? = null,  // Ubah dari Int ke Double nullable
+    val short_rad: Double? = null,
 
     @SerializedName("temp_c")
     val temp_c: Double = 0.0,

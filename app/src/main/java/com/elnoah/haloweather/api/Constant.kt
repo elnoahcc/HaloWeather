@@ -2,5 +2,5 @@ package com.elnoah.haloweather.api
 
 object Constant {
 
-    val apiKey = "d757b63c83e44e4c8a031656252111"
+    val apiKey = "f616b4082e44443db0570903252411"
 }

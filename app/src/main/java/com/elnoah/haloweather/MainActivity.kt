@@ -24,15 +24,15 @@ class MainActivity : ComponentActivity() {
     ) { permissions ->
         when {
             permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
-                // Precise location access granted
+
                 weatherViewModel.getCurrentLocationWeather()
             }
             permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
-                // Approximate location access granted
+
                 weatherViewModel.getCurrentLocationWeather()
             }
             else -> {
-                // No location access granted - use default location
+
                 weatherViewModel.getData("Surakarta")
             }
         }
@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
 
         weatherViewModel = ViewModelProvider(this)[WeatherViewModel::class.java]
 
-        // Request location permissions
+
         checkAndRequestLocationPermissions()
 
         enableEdgeToEdge()

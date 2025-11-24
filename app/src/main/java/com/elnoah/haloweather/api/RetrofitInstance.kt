@@ -9,7 +9,7 @@ object RetrofitInstance {
     private const val baseURL = "https://api.weatherapi.com/v1/"
 
     private val gson = GsonBuilder()
-        .setLenient()  // Lebih toleran terhadap JSON yang tidak perfect
+        .setLenient()
         .create()
 
     private fun getInstance(): Retrofit {

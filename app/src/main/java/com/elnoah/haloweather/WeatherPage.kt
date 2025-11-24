@@ -145,10 +145,10 @@ fun CurrentLocationWeatherCard(
     val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
 
-    // State untuk memeriksa apakah lokasi diaktifkan
+
     var isLocationEnabled by remember { mutableStateOf(true) }
 
-    // Animasi untuk card
+
     val infiniteTransition = rememberInfiniteTransition(label = "card_glow")
     val glowAlpha by infiniteTransition.animateFloat(
         initialValue = 0.3f,
@@ -159,7 +159,7 @@ fun CurrentLocationWeatherCard(
         ), label = "glow"
     )
 
-    // Cek status lokasi sebelum mengambil data cuaca
+
     LaunchedEffect(Unit) {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
         isLocationEnabled = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) ||
@@ -191,13 +191,13 @@ fun CurrentLocationWeatherCard(
                 )
             )
     ) {
-        // Weather-based animation effect
+
         when (val result = weatherResult.value) {
             is NetworkResponse.Success -> {
                 WeatherAmbience(result.data.current.condition.text)
             }
             else -> {
-                // No animation when loading or error
+
             }
         }
 
@@ -208,7 +208,7 @@ fun CurrentLocationWeatherCard(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header: Logo di kiri, Nama App di kanan
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -216,7 +216,7 @@ fun CurrentLocationWeatherCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Logo di kiri dengan animasi
+
                 Image(
                     painter = painterResource(id = R.drawable.halo_weather_icon),
                     contentDescription = "Halo Weather Logo",
@@ -228,7 +228,7 @@ fun CurrentLocationWeatherCard(
                         }
                 )
 
-                // Nama aplikasi di kanan
+
                 Column(
                     horizontalAlignment = Alignment.End
                 ) {
@@ -259,7 +259,6 @@ fun CurrentLocationWeatherCard(
 
 
 
-            // Main Weather Card dengan glassmorphism effect
             when (val result = weatherResult.value) {
                 is NetworkResponse.Success -> {
                     CurrentLocationCard(
@@ -278,7 +277,7 @@ fun CurrentLocationWeatherCard(
                 }
                 NetworkResponse.Loading -> {
                     if (!isLocationEnabled) {
-                        // Tampilkan card lokasi mati
+
                         CurrentLocationCard(
                             data = null,
                             glowAlpha = glowAlpha,
@@ -293,7 +292,7 @@ fun CurrentLocationWeatherCard(
                             }
                         )
                     } else {
-                        // Tampilkan loading
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -357,7 +356,7 @@ fun CurrentLocationWeatherCard(
                     }
                 }
                 else -> {
-                    // Idle state - cek jika lokasi mati
+
                     if (!isLocationEnabled) {
                         CurrentLocationCard(
                             data = null,
@@ -378,7 +377,6 @@ fun CurrentLocationWeatherCard(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Search Button dengan animasi
             Button(
                 onClick = onNavigateToSearch,
                 modifier = Modifier
@@ -620,7 +618,7 @@ fun CurrentLocationCard(
             }
         }
 
-        // 🔮 Forecast
+
         data.forecast?.let { forecast ->
             Spacer(modifier = Modifier.height(16.dp))
             ForecastCard(
@@ -762,7 +760,7 @@ fun ForecastDayItem(
 }
 
 
-// Compact temperature unit untuk landscape
+
 @Composable
 fun TempUnitCompact(value: String, unit: String, isDark: Boolean) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -897,7 +895,7 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
     val hasSearched = weatherResult.value != null && weatherResult.value !is NetworkResponse.Idle
     val colors = MaterialTheme.colorScheme
 
-    // Debounce untuk search suggestions
+
     LaunchedEffect(city) {
         if (city.length >= 2) {
             kotlinx.coroutines.delay(300)
@@ -907,7 +905,7 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
         }
     }
 
-    // Handle back press
+
     BackHandler(enabled = true) {
         if (hasSearched) {
             viewModel.resetWeatherResult()
@@ -938,13 +936,13 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
                 )
             )
     ) {
-        // Weather-based animation effect
+
         when (val result = weatherResult.value) {
             is NetworkResponse.Success -> {
                 WeatherAmbience(result.data.current.condition.text)
             }
             else -> {
-                // No animation when loading or error
+
             }
         }
 
@@ -957,7 +955,7 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
         ) {
 
             if (!hasSearched) {
-                // Header: Logo di kiri, Nama App di kanan
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -983,13 +981,13 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
                 Spacer(modifier = Modifier.height(40.dp))
             }
 
-            // Search Box dengan Suggestions sebagai Overlay
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
             ) {
-                // Card Search Input
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1063,7 +1061,7 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
                     }
                 }
 
-                // Suggestions Dropdown - Positioned as Overlay
+
                 if (showSuggestions && locationSuggestions.value.isNotEmpty()) {
                     Card(
                         modifier = Modifier
@@ -1109,7 +1107,7 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
                 when (result) {
 
                     NetworkResponse.Idle -> {
-                        // Idle state
+
                     }
 
                     NetworkResponse.Loading ->
@@ -1148,7 +1146,7 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
                     }
 
                     null -> {
-                        // Null state
+
                     }
                 }
             }
@@ -1222,7 +1220,7 @@ fun WeatherDetailsModern(data: WeatherModel) {
             .padding(vertical = if (isLandscape) 4.dp else 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header Card dengan Location
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(if (isLandscape) 20.dp else 24.dp),
@@ -1270,7 +1268,7 @@ fun WeatherDetailsModern(data: WeatherModel) {
 
         Spacer(modifier = Modifier.height(if (isLandscape) 12.dp else 16.dp))
 
-        // Main Weather Card
+
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(if (isLandscape) 20.dp else 24.dp),
@@ -1284,7 +1282,7 @@ fun WeatherDetailsModern(data: WeatherModel) {
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             if (isLandscape) {
-                // LANDSCAPE: Horizontal layout
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1292,7 +1290,7 @@ fun WeatherDetailsModern(data: WeatherModel) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // Left: Temperature & Icon
+
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
@@ -1323,12 +1321,12 @@ fun WeatherDetailsModern(data: WeatherModel) {
                         )
                     }
 
-                    // Right: Quick Info
+
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        // Temperature Conversions
+
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxWidth()
@@ -1347,7 +1345,7 @@ fun WeatherDetailsModern(data: WeatherModel) {
                             else Color(0xFF1A1C1E).copy(alpha = 0.2f)
                         )
 
-                        // Quick stats
+
                         Row(
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             modifier = Modifier.fillMaxWidth()
@@ -1359,7 +1357,7 @@ fun WeatherDetailsModern(data: WeatherModel) {
                     }
                 }
             } else {
-                // PORTRAIT: Original vertical layout
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1438,7 +1436,6 @@ fun WeatherDetailsModern(data: WeatherModel) {
 
         Spacer(modifier = Modifier.height(if (isLandscape) 12.dp else 16.dp))
 
-        // Additional Info Card - Compact untuk landscape
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(if (isLandscape) 20.dp else 24.dp),
@@ -1533,7 +1530,7 @@ fun WeatherAmbience(condition: String) {
         condition.contains("thunder", true) || condition.contains("storm", true) -> ThunderstormEffect()
         condition.contains("clear", true) || condition.contains("sunny", true) -> SunEffect()
         else -> {
-            // No special effect for other conditions
+
         }
     }
 }
@@ -1739,7 +1736,7 @@ fun ThunderstormEffect() {
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        // Rain effect
+
         drops.forEach { (xPos, initialY, speed) ->
             val progress = (animationProgress + initialY) % 1f
             val yPos = progress * size.height
@@ -1753,7 +1750,7 @@ fun ThunderstormEffect() {
             )
         }
 
-        // Lightning effect
+
         if (lightningAlpha > 0.1f) {
             drawRect(
                 color = Color.White.copy(alpha = 0.3f * lightningAlpha),

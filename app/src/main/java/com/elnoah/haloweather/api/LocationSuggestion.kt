@@ -24,7 +24,7 @@ data class LocationSuggestion(
     @SerializedName("url")
     val url: String = ""
 ) {
-    // Helper untuk display text
+
     fun getDisplayText(): String {
         return if (region.isNotEmpty()) {
             "$name, $region, $country"
