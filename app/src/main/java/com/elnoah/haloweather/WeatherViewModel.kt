@@ -18,13 +18,16 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class WeatherViewModel(application: Application) : AndroidViewModel(application) {
 
     private val weatherApi = RetrofitInstance.weatherApi
 
-    private val _weatherResult = MutableLiveData<NetworkResponse<WeatherModel>>(NetworkResponse.Idle)
+    private val _weatherResult =
+        MutableLiveData<NetworkResponse<WeatherModel>>(NetworkResponse.Idle)
     val weatherResult: LiveData<NetworkResponse<WeatherModel>> = _weatherResult
 
     private val _locationSuggestions = MutableLiveData<List<LocationSuggestion>>()
@@ -33,8 +36,12 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(application)
 
+    private val _locationDisabled = MutableStateFlow(false)
+    val locationDisabled: StateFlow<Boolean> = _locationDisabled
+
     fun getData(city: String) {
         _weatherResult.value = NetworkResponse.Loading
+
         viewModelScope.launch {
             try {
                 val response = weatherApi.getForecastWeather(
@@ -42,6 +49,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                     city = city,
                     days = 3
                 )
+
                 if (response.isSuccessful) {
                     response.body()?.let {
                         _weatherResult.value = NetworkResponse.Success(it)
@@ -50,7 +58,8 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                     _weatherResult.value = NetworkResponse.Error("Failed to load data")
                 }
             } catch (e: Exception) {
-                _weatherResult.value = NetworkResponse.Error("Failed to load data: ${e.message}")
+                _weatherResult.value =
+                    NetworkResponse.Error("Failed to load data: ${e.message}")
             }
         }
     }
@@ -65,7 +74,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            getData("Surakarta")
+            _locationDisabled.value = true
             return
         }
 
@@ -73,6 +82,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
 
         try {
             val cancellationTokenSource = CancellationTokenSource()
+
             fusedLocationClient.getCurrentLocation(
                 Priority.PRIORITY_BALANCED_POWER_ACCURACY,
                 cancellationTokenSource.token
@@ -80,22 +90,23 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                 if (location != null) {
                     getWeatherByCoordinates(location.latitude, location.longitude)
                 } else {
-                    getData("Surakarta")
+                    _locationDisabled.value = true
                 }
             }.addOnFailureListener {
-                getData("Surakarta")
+                _locationDisabled.value = true
             }
         } catch (e: Exception) {
-            getData("Surakarta")
+            _locationDisabled.value = true
         }
     }
 
     private fun getWeatherByCoordinates(lat: Double, lon: Double) {
         viewModelScope.launch {
             try {
-                val response = weatherApi.getWeather(
+                val response = weatherApi.getForecastWeather(  // ← PERBAIKAN
                     Constant.apiKey,
-                    "$lat,$lon"
+                    city = "$lat,$lon",  // Parameter tetap bisa pakai koordinat
+                    days = 3
                 )
                 if (response.isSuccessful) {
                     response.body()?.let {
@@ -122,12 +133,14 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                     Constant.apiKey,
                     query
                 )
+
                 if (response.isSuccessful) {
                     response.body()?.let {
                         _locationSuggestions.value = it
                     }
                 }
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            }
         }
     }
 

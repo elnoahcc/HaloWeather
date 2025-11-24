@@ -17,5 +17,9 @@
     <string name="detect_location">Mendeteksi lokasi anda</string>
     <string name="failed_detect_location">Gagal mendeteksi lokasi anda</string>
     <string name="search_city">Cari Daerah Anda</string>
-    <string name="forecast_3_days">Forecase 3 Days</string>
+    <string name="forecast_3_days">Perkiraan 3 Hari</string>
+    <string name="network_error">Masalah koneksi internet</string>
+    <string name="location_off">Lokasi anda mati</string>
+    <string name="message_location_off">Silahkan nyalakan lokasi Anda untuk melanjutkan.</string>
+    <string name="turn_on_location">Nyalakan Lokasi</string>
 </resources>

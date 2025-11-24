@@ -18,4 +18,8 @@
     <string name="failed_detect_location">Failed detect your location</string>
     <string name="search_city">Find your Location</string>
     <string name="forecast_3_days">Forecast 3 days</string>
+    <string name="network_error">Network connection error</string>
+    <string name="location_off">Your location is off</string>
+    <string name="message_location_off">Please turn on your location to continue.</string>
+    <string name="turn_on_location">Turn on Location</string>
 </resources>

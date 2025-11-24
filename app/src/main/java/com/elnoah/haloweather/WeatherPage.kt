@@ -1,7 +1,11 @@
 package com.elnoah.haloweather
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -43,8 +47,12 @@ import com.elnoah.haloweather.ui.theme.Typography
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.platform.LocalConfiguration
 import android.content.res.Configuration
+import android.location.SettingInjectorService
+import android.provider.Settings
 import kotlin.random.Random
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import com.elnoah.haloweather.api.ForecastDay
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -54,6 +62,9 @@ fun isLandscape(): Boolean {
     val configuration = LocalConfiguration.current
     return configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 }
+
+
+
 
 private val BlueLightScheme = lightColorScheme(
     primary = Color(0xFF1E88E5),
@@ -86,16 +97,23 @@ fun HaloBlueTheme(content: @Composable () -> Unit) {
         content = content
     )
 }
-
 @Composable
 fun WeatherPage(viewModel: WeatherViewModel) {
     HaloBlueTheme {
+
         var showCurrentLocation by remember { mutableStateOf(true) }
 
-        // Reset ke current location saat back dari search
+        val state = viewModel.weatherResult.observeAsState().value
+
+
+
+        LaunchedEffect(Unit) {
+            viewModel.getCurrentLocationWeather()
+        }
+
         BackHandler(enabled = !showCurrentLocation) {
             showCurrentLocation = true
-            viewModel.getData("Surakarta") // Reload lokasi saat ini
+            viewModel.getCurrentLocationWeather()
         }
 
         if (showCurrentLocation) {
@@ -112,6 +130,11 @@ fun WeatherPage(viewModel: WeatherViewModel) {
     }
 }
 
+
+
+
+
+
 @Composable
 fun CurrentLocationWeatherCard(
     viewModel: WeatherViewModel,
@@ -120,6 +143,10 @@ fun CurrentLocationWeatherCard(
     val weatherResult = viewModel.weatherResult.observeAsState()
     val colors = MaterialTheme.colorScheme
     val isDark = isSystemInDarkTheme()
+    val context = LocalContext.current
+
+    // State untuk memeriksa apakah lokasi diaktifkan
+    var isLocationEnabled by remember { mutableStateOf(true) }
 
     // Animasi untuk card
     val infiniteTransition = rememberInfiniteTransition(label = "card_glow")
@@ -132,9 +159,15 @@ fun CurrentLocationWeatherCard(
         ), label = "glow"
     )
 
+    // Cek status lokasi sebelum mengambil data cuaca
     LaunchedEffect(Unit) {
-        // Auto-detect lokasi saat ini (gunakan city default atau GPS)
-        viewModel.getData("Surakarta") // Ganti dengan lokasi user atau GPS
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
+        isLocationEnabled = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
+
+        if (isLocationEnabled) {
+            viewModel.getCurrentLocationWeather()
+        }
     }
 
     Box(
@@ -224,41 +257,69 @@ fun CurrentLocationWeatherCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+
+
             // Main Weather Card dengan glassmorphism effect
             when (val result = weatherResult.value) {
                 is NetworkResponse.Success -> {
                     CurrentLocationCard(
                         data = result.data,
                         glowAlpha = glowAlpha,
-                        onNavigateToSearch = onNavigateToSearch
+                        locationDisabled = false,
+                        onNavigateToSearch = onNavigateToSearch,
+                        onOpenLocationSettings = {
+                            val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                            context.startActivity(intent)
+                        },
+                        onExit = {
+                            (context as? Activity)?.finish()
+                        }
                     )
                 }
                 NetworkResponse.Loading -> {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(280.dp),
-                        shape = RoundedCornerShape(32.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White.copy(alpha = 0.15f)
+                    if (!isLocationEnabled) {
+                        // Tampilkan card lokasi mati
+                        CurrentLocationCard(
+                            data = null,
+                            glowAlpha = glowAlpha,
+                            locationDisabled = true,
+                            onNavigateToSearch = onNavigateToSearch,
+                            onOpenLocationSettings = {
+                                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                                context.startActivity(intent)
+                            },
+                            onExit = {
+                                (context as? Activity)?.finish()
+                            }
                         )
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                    } else {
+                        // Tampilkan loading
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(280.dp),
+                            shape = RoundedCornerShape(32.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color.White.copy(alpha = 0.15f)
+                            )
                         ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                CircularProgressIndicator(
-                                    color = Color.White,
-                                    strokeWidth = 3.dp
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(
-                                    stringResource(id = R.string.detect_location),
-                                    color = Color.White,
-                                    fontFamily = StackSansText,
-                                    fontSize = 14.sp
-                                )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        strokeWidth = 3.dp
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        stringResource(id = R.string.detect_location),
+                                        color = Color.White,
+                                        fontFamily = StackSansText,
+                                        fontSize = 14.sp
+                                    )
+                                }
                             }
                         }
                     }
@@ -296,7 +357,22 @@ fun CurrentLocationWeatherCard(
                     }
                 }
                 else -> {
-                    // Idle state
+                    // Idle state - cek jika lokasi mati
+                    if (!isLocationEnabled) {
+                        CurrentLocationCard(
+                            data = null,
+                            glowAlpha = glowAlpha,
+                            locationDisabled = true,
+                            onNavigateToSearch = onNavigateToSearch,
+                            onOpenLocationSettings = {
+                                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                                context.startActivity(intent)
+                            },
+                            onExit = {
+                                (context as? Activity)?.finish()
+                            }
+                        )
+                    }
                 }
             }
 
@@ -345,27 +421,108 @@ fun CurrentLocationWeatherCard(
 
 @Composable
 fun CurrentLocationCard(
-    data: WeatherModel,
+    data: WeatherModel?,
     glowAlpha: Float,
-    onNavigateToSearch: () -> Unit
+    locationDisabled: Boolean,
+    onNavigateToSearch: () -> Unit,
+    onOpenLocationSettings: () -> Unit,
+    onExit: () -> Unit
 ) {
-    val translatedCondition = remember(data.current.condition.text) {
-        WeatherTranslations.translate(data.current.condition.text)
-    }
     val isDark = isSystemInDarkTheme()
     val isLandscape = isLandscape()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight()
-            .clickable(
-                onClick = onNavigateToSearch,
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ),
+            .wrapContentHeight(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+
+        if (locationDisabled) {
+
+            val isDark = isSystemInDarkTheme()
+            val bg = if (isDark) Color(0xFF1565C0) else Color(0xFF1E88E5)
+            val textColor = Color.White
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = bg
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Text(
+                        text = stringResource(id = R.string.location_off),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = StackSansText,
+                        color = textColor,
+                        style = TextStyle(
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.25f),
+                                offset = Offset(0f, 3f),
+                                blurRadius = 6f
+                            )
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = stringResource(id = R.string.message_location_off),
+                        fontSize = 15.sp,
+                        fontFamily = StackSansText,
+                        color = textColor.copy(alpha = 0.85f)
+                    )
+
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Button(
+                            onClick = onOpenLocationSettings,
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White.copy(alpha = 0.2f),
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(
+                                text = stringResource (id = R.string.turn_on_location),
+                                fontFamily = StackSansText,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+            }
+
+            return
+        }
+
+
+
+        if (data == null) return
+
+        val translatedCondition = remember(data.current.condition.text) {
+            WeatherTranslations.translate(data.current.condition.text)
+        }
+
+
+
+
+
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -425,117 +582,47 @@ fun CurrentLocationCard(
             colors = CardDefaults.cardColors(
                 containerColor = if (isDark) Color.White.copy(alpha = 0.12f)
                 else Color.White.copy(alpha = 0.95f)
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            )
         ) {
-            if (isLandscape) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = "${data.current.temp_c.toInt()}°",
-                            fontSize = 56.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = StackSansText,
-                            color = if (isDark) Color.White else Color(0xFF1565C0),
-                            letterSpacing = (-2).sp
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = translatedCondition,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            fontFamily = StackSansText,
-                            color = if (isDark) Color.White.copy(alpha = 0.85f)
-                            else Color(0xFF1A1C1E).copy(alpha = 0.75f)
-                        )
-                    }
-
-                    AsyncImage(
-                        model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
-                        contentDescription = null,
-                        modifier = Modifier.size(80.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        "${data.current.temp_c.toInt()}°",
+                        fontSize = 72.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = StackSansText,
+                        color = if (isDark) Color.White else Color(0xFF1565C0)
                     )
 
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        val tempF = TemperatureUtils.celsiusToFahrenheit(data.current.temp_c)
-                        val tempK = TemperatureUtils.celsiusToKelvin(data.current.temp_c)
-                        val tempR = TemperatureUtils.celsiusToReamur(data.current.temp_c)
+                    Spacer(Modifier.height(8.dp))
 
-                        TempUnitCompact(TemperatureUtils.formatTemp(tempF), "°F", isDark)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        TempUnitCompact(TemperatureUtils.formatTemp(tempK), "K", isDark)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        TempUnitCompact(TemperatureUtils.formatTemp(tempR), "°R", isDark)
-                    }
-                }
-            } else {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(horizontalAlignment = Alignment.Start) {
-                        Text(
-                            text = "${data.current.temp_c.toInt()}°",
-                            fontSize = 72.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = StackSansText,
-                            color = if (isDark) Color.White else Color(0xFF1565C0),
-                            letterSpacing = (-3).sp
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        val tempF = TemperatureUtils.celsiusToFahrenheit(data.current.temp_c)
-                        val tempK = TemperatureUtils.celsiusToKelvin(data.current.temp_c)
-                        val tempR = TemperatureUtils.celsiusToReamur(data.current.temp_c)
-
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TempUnit(TemperatureUtils.formatTemp(tempF), "°F", isDark)
-                            TempUnit(TemperatureUtils.formatTemp(tempK), "K", isDark)
-                            TempUnit(TemperatureUtils.formatTemp(tempR), "°R", isDark)
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            translatedCondition,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            fontFamily = StackSansText,
-                            color = if (isDark) Color.White.copy(alpha = 0.85f)
-                            else Color(0xFF1A1C1E).copy(alpha = 0.75f)
-                        )
-                    }
-
-                    AsyncImage(
-                        model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
-                        contentDescription = null,
-                        modifier = Modifier.size(100.dp)
+                    Text(
+                        translatedCondition,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = StackSansText,
+                        color = if (isDark) Color.White.copy(alpha = 0.85f)
+                        else Color.Black.copy(alpha = 0.75f)
                     )
                 }
+
+                AsyncImage(
+                    model = "https:${data.current.condition.icon}".replace("64x64", "128x128"),
+                    contentDescription = null,
+                    modifier = Modifier.size(110.dp)
+                )
             }
         }
 
+        // 🔮 Forecast
         data.forecast?.let { forecast ->
-            Spacer(modifier = Modifier.height(if (isLandscape) 12.dp else 16.dp))
-
+            Spacer(modifier = Modifier.height(16.dp))
             ForecastCard(
                 forecastDays = forecast.forecastday,
                 isDark = isDark,
@@ -544,6 +631,8 @@ fun CurrentLocationCard(
         }
     }
 }
+
+
 
 @Composable
 fun ForecastCard(
