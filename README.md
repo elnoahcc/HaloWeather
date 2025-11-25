@@ -310,7 +310,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Developer
+<h2 align="center">Developer</h2>
 
 **Elnoah Agustinus Markus Manalu**
 - GitHub: [@elnoahcc](https://github.com/elnoahcc)
