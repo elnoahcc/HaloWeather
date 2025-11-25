@@ -22,4 +22,8 @@
     <string name="location_off">Your location is off</string>
     <string name="message_location_off">Please turn on your location to continue.</string>
     <string name="turn_on_location">Turn on Location</string>
+    <string name="exit_app_title">Exit App</string>
+    <string name="exit_app_message">Are you sure to exit this app?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

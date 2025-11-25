@@ -143,13 +143,11 @@ fun CurrentLocationWeatherCard(
     onNavigateToSearch: () -> Unit
 ) {
     val weatherResult = viewModel.weatherResult.observeAsState()
-    val colors = MaterialTheme.colorScheme
     val isDark = isSystemInDarkTheme()
     val context = LocalContext.current
 
-
     var isLocationEnabled by remember { mutableStateOf(true) }
-
+    var showExitDialog by remember { mutableStateOf(false) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "card_glow")
     val glowAlpha by infiniteTransition.animateFloat(
@@ -158,19 +156,88 @@ fun CurrentLocationWeatherCard(
         animationSpec = infiniteRepeatable(
             animation = tween(2000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
-        ), label = "glow"
+        ),
+        label = "glow"
     )
 
 
+    BackHandler {
+        showExitDialog = true
+    }
+
     LaunchedEffect(Unit) {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as android.location.LocationManager
-        isLocationEnabled = locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) ||
-                locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
+        isLocationEnabled =
+            locationManager.isProviderEnabled(android.location.LocationManager.GPS_PROVIDER) ||
+                    locationManager.isProviderEnabled(android.location.LocationManager.NETWORK_PROVIDER)
 
         if (isLocationEnabled) {
             viewModel.getCurrentLocationWeather()
         }
     }
+
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = {
+                Text(
+                    text = stringResource(id = R.string.exit_app_title),
+                    fontFamily = StackSansText,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = if (isDark) Color.White else Color(0xFF1565C0)
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(id = R.string.exit_app_message),
+                    fontFamily = StackSansText,
+                    fontSize = 16.sp,
+                    color = if (isDark) Color.White.copy(alpha = 0.8f)
+                    else Color(0xFF1A1C1E)
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        (context as? Activity)?.finish()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1E88E5)
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.yes),
+                        fontFamily = StackSansText
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showExitDialog = false },
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.no),
+                        fontFamily = StackSansText,
+                        color = Color(0xFF1E88E5)
+                    )
+                }
+            },
+
+
+            containerColor = if (isDark)
+                Color.White.copy(alpha = 0.12f)
+            else
+                Color.White.copy(alpha = 0.95f),
+
+            tonalElevation = 0.dp,
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+
+
 
     Box(
         modifier = Modifier
@@ -194,13 +261,12 @@ fun CurrentLocationWeatherCard(
             )
     ) {
 
+
         when (val result = weatherResult.value) {
             is NetworkResponse.Success -> {
                 WeatherAmbience(result.data.current.condition.text)
             }
-            else -> {
-
-            }
+            else -> {}
         }
 
         Column(
@@ -210,6 +276,7 @@ fun CurrentLocationWeatherCard(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
 
             Row(
                 modifier = Modifier
@@ -230,23 +297,13 @@ fun CurrentLocationWeatherCard(
                         }
                 )
 
-
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
+                Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        "Halo Weather",
+                        text = stringResource(id = R.string.app_name),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = StackSansText,
-                        color = Color.White,
-                        style = androidx.compose.ui.text.TextStyle(
-                            shadow = Shadow(
-                                color = Color.Black.copy(alpha = 0.3f),
-                                offset = Offset(0f, 4f),
-                                blurRadius = 8f
-                            )
-                        )
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(id = R.string.cuaca_lokal_anda),
@@ -260,8 +317,8 @@ fun CurrentLocationWeatherCard(
             Spacer(modifier = Modifier.height(16.dp))
 
 
-
             when (val result = weatherResult.value) {
+
                 is NetworkResponse.Success -> {
                     CurrentLocationCard(
                         data = result.data,
@@ -277,9 +334,9 @@ fun CurrentLocationWeatherCard(
                         }
                     )
                 }
+
                 NetworkResponse.Loading -> {
                     if (!isLocationEnabled) {
-
                         CurrentLocationCard(
                             data = null,
                             glowAlpha = glowAlpha,
@@ -294,7 +351,6 @@ fun CurrentLocationWeatherCard(
                             }
                         )
                     } else {
-
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -325,6 +381,7 @@ fun CurrentLocationWeatherCard(
                         }
                     }
                 }
+
                 is NetworkResponse.Error -> {
                     Card(
                         modifier = Modifier
@@ -357,8 +414,8 @@ fun CurrentLocationWeatherCard(
                         }
                     }
                 }
-                else -> {
 
+                else -> {
                     if (!isLocationEnabled) {
                         CurrentLocationCard(
                             data = null,
@@ -379,6 +436,7 @@ fun CurrentLocationWeatherCard(
 
             Spacer(modifier = Modifier.height(24.dp))
 
+
             Button(
                 onClick = onNavigateToSearch,
                 modifier = Modifier
@@ -388,10 +446,7 @@ fun CurrentLocationWeatherCard(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White.copy(alpha = 0.2f)
                 ),
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 0.dp,
-                    pressedElevation = 0.dp
-                )
+                elevation = ButtonDefaults.buttonElevation(0.dp, 0.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -418,6 +473,7 @@ fun CurrentLocationWeatherCard(
         }
     }
 }
+
 
 @Composable
 fun CurrentLocationCard(
@@ -1702,28 +1758,25 @@ data class CloudData(
 fun SunEffect() {
     val infiniteTransition = rememberInfiniteTransition(label = "sun")
     val glow by infiniteTransition.animateFloat(
-        initialValue = 0.7f,
-        targetValue = 1.1f,
+        initialValue = 0.6f,
+        targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(3500, easing = FastOutSlowInEasing),
+            animation = tween(3000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
-        ),
-        label = "sun_glow"
+        ), label = "sun_glow"
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        // Posisi benar-benar di pojok kanan atas
-        val centerX = size.width * 0.95f
-        val centerY = size.height * 0.08f
-
-        val maxRadius = minOf(size.width, size.height) / 5f
+        val centerX = size.width * 0.85f
+        val centerY = size.height * 0.15f
+        val maxRadius = minOf(size.width, size.height) / 4f
 
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    Color(0xAAE0F7FF),  // biru muda lembut
-                    Color(0x66FFFFFF),  // putih lembut
-                    Color(0x22E0FFFF),  // biru sangat tipis
+                    Color(0x33FFEB3B),
+                    Color(0x22FFC107),
+                    Color(0x11FFB300),
                     Color.Transparent
                 ),
                 center = Offset(centerX, centerY),
@@ -1734,7 +1787,6 @@ fun SunEffect() {
         )
     }
 }
-
 
 @Composable
 fun ThunderstormEffect() {

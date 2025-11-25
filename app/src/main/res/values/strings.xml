@@ -21,4 +21,8 @@
     <string name="location_off">Lokasi Anda mati</string>
     <string name="message_location_off">Silahkan nyalakan lokasi Anda untuk melanjutkan.</string>
     <string name="turn_on_location">Nyalakan Lokasi</string>
+    <string name="exit_app_title">Keluar Aplikasi</string>
+    <string name="exit_app_message">Apakah anda yakin ingin keluar?</string>
+    <string name="yes">Iya</string>
+    <string name="no">Tidak</string>
 </resources>
