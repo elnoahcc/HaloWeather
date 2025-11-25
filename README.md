@@ -284,7 +284,7 @@ haloweather/
 
 <br>
 
-<h2 align="center">License</h2>
+<h2 align="center">Lisensi</h2>
 
 ```
 MIT License
