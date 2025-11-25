@@ -26,7 +26,8 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 <br>
 
 
-## Fitur Utama
+<h2 align="center">Fitur Utama</h2>
+
 <table align="center">
   <tr>
     <td align="center">
@@ -76,7 +77,7 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 
 <br>
 
-## Tech Stack
+<h1 align="center">Tech Stack</h1>
 
 <h3>Core</h3>
 <table>
@@ -135,6 +136,8 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
   </tr>
 </table>
 
+<br>
+
 ### API
 - **[WeatherAPI.com](https://www.weatherapi.com/)** - Reliable weather data provider
 
@@ -171,7 +174,7 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 
   <br>
 
-## 🚀 Getting Started
+<h2 align="center">Memulai Projek</h2>
 
 ### 1. Clone Repository
 
