@@ -51,6 +51,8 @@ import android.location.SettingInjectorService
 import android.provider.Settings
 import kotlin.random.Random
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import com.elnoah.haloweather.api.ForecastDay
@@ -701,13 +703,14 @@ fun ForecastDayItem(
     val date = remember(forecastDay.date) {
         try {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val outputFormat = SimpleDateFormat("EEE, dd MMM", Locale("id", "ID"))
+            val outputFormat = SimpleDateFormat("EEE, dd MMM", Locale.getDefault())
             val parsed = inputFormat.parse(forecastDay.date)
             parsed?.let { outputFormat.format(it) } ?: forecastDay.date
         } catch (_: Exception) {
             forecastDay.date
         }
     }
+
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -907,12 +910,7 @@ fun WeatherSearchPage(viewModel: WeatherViewModel, onBackToHome: () -> Unit) {
 
 
     BackHandler(enabled = true) {
-        if (hasSearched) {
-            viewModel.resetWeatherResult()
-            city = ""
-        } else {
-            onBackToHome()
-        }
+        onBackToHome()
     }
 
     Box(
@@ -1612,78 +1610,120 @@ fun SnowEffect() {
 @Composable
 fun CloudEffect() {
     val clouds = remember {
-        List(8) {
-            Triple(
-                Random.nextFloat(),
-                Random.nextFloat() * 0.6f,
-                40f + Random.nextFloat() * 60f
+        List(10) {
+            CloudData(
+                initialX = Random.nextFloat(),
+                yPos = Random.nextFloat() * 0.7f,
+                baseSize = 50f + Random.nextFloat() * 80f,
+                layer = Random.nextInt(1, 4) // 1 = paling jauh, 3 = paling dekat
             )
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "cloud")
+    val infiniteTransition = rememberInfiniteTransition(label = "cloud_transition")
+
+    // global animation progress
     val animationProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(30000, easing = LinearEasing),
+            animation = tween(45000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
-        ), label = "cloud_progress"
+        ),
+        label = "cloud_global_progress"
+    )
+
+    // opacity breathing
+    val breathing by infiniteTransition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(6000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "cloud_breathing"
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        clouds.forEach { (initialX, yPos, cloudSize) ->
-            val progress = (animationProgress + initialX) % 1f
-            val xPos = progress * (size.width + cloudSize * 2) - cloudSize
+        clouds.forEach { cloud ->
 
-            val alpha = when {
-                progress < 0.1f -> progress * 10
-                progress > 0.9f -> (1 - progress) * 10
+            val speedMultiplier = when (cloud.layer) {
+                1 -> 0.35f   // jauh
+                2 -> 0.55f   // tengah
+                else -> 0.85f // dekat
+            }
+
+            val progress = (animationProgress * speedMultiplier + cloud.initialX) % 1f
+            val xPos = progress * (size.width + cloud.baseSize * 2) - cloud.baseSize
+            val yPos = cloud.yPos * size.height
+
+            val fadeAlpha = when {
+                progress < 0.1f -> progress * 10f
+                progress > 0.9f -> (1f - progress) * 10f
                 else -> 1f
             }
 
-            drawCircle(
-                color = Color.White.copy(alpha = 0.15f * alpha),
-                radius = cloudSize,
-                center = Offset(xPos, yPos * size.height)
+            val cloudColor = when (cloud.layer) {
+                1 -> Color.White.copy(alpha = 0.08f * fadeAlpha * breathing)
+                2 -> Color.White.copy(alpha = 0.12f * fadeAlpha * breathing)
+                else -> Color.White.copy(alpha = 0.18f * fadeAlpha * breathing)
+            }
+
+            // Draw body (elliptical shapes)
+            drawOval(
+                color = cloudColor,
+                topLeft = Offset(xPos, yPos - cloud.baseSize / 2),
+                size = Size(cloud.baseSize * 1.7f, cloud.baseSize)
             )
-            drawCircle(
-                color = Color.White.copy(alpha = 0.12f * alpha),
-                radius = cloudSize * 0.8f,
-                center = Offset(xPos + cloudSize * 0.6f, yPos * size.height)
+            drawOval(
+                color = cloudColor.copy(alpha = cloudColor.alpha * 0.85f),
+                topLeft = Offset(xPos - cloud.baseSize * 0.6f, yPos - cloud.baseSize * 0.4f),
+                size = Size(cloud.baseSize * 1.2f, cloud.baseSize * 0.8f)
             )
-            drawCircle(
-                color = Color.White.copy(alpha = 0.1f * alpha),
-                radius = cloudSize * 0.7f,
-                center = Offset(xPos - cloudSize * 0.4f, yPos * size.height)
+            drawOval(
+                color = cloudColor.copy(alpha = cloudColor.alpha * 0.8f),
+                topLeft = Offset(xPos + cloud.baseSize * 0.8f, yPos - cloud.baseSize * 0.5f),
+                size = Size(cloud.baseSize, cloud.baseSize * 0.7f)
             )
         }
     }
 }
 
+// reusable cloud data (lebih rapi)
+data class CloudData(
+    val initialX: Float,
+    val yPos: Float,
+    val baseSize: Float,
+    val layer: Int
+)
+
+
 @Composable
 fun SunEffect() {
     val infiniteTransition = rememberInfiniteTransition(label = "sun")
     val glow by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 1f,
+        initialValue = 0.7f,
+        targetValue = 1.1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = FastOutSlowInEasing),
+            animation = tween(3500, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
-        ), label = "sun_glow"
+        ),
+        label = "sun_glow"
     )
 
     Canvas(modifier = Modifier.fillMaxSize()) {
-        val centerX = size.width * 0.85f
-        val centerY = size.height * 0.15f
-        val maxRadius = minOf(size.width, size.height) / 4f
+        // Posisi benar-benar di pojok kanan atas
+        val centerX = size.width * 0.95f
+        val centerY = size.height * 0.08f
+
+        val maxRadius = minOf(size.width, size.height) / 5f
 
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(
-                    Color(0x33FFEB3B),
-                    Color(0x22FFC107),
-                    Color(0x11FFB300),
+                    Color(0xAAE0F7FF),  // biru muda lembut
+                    Color(0x66FFFFFF),  // putih lembut
+                    Color(0x22E0FFFF),  // biru sangat tipis
                     Color.Transparent
                 ),
                 center = Offset(centerX, centerY),
@@ -1694,6 +1734,7 @@ fun SunEffect() {
         )
     }
 }
+
 
 @Composable
 fun ThunderstormEffect() {
@@ -1708,15 +1749,18 @@ fun ThunderstormEffect() {
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "thunderstorm")
+
     val animationProgress by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(600, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
-        ), label = "rain_progress"
+        ),
+        label = "rain_progress"
     )
 
+    // 🔥 Flash jadikan hanya opacity petir, bukan layar
     val lightningAlpha by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
@@ -1725,18 +1769,27 @@ fun ThunderstormEffect() {
                 durationMillis = 3000
                 0f at 0
                 0f at 1000
-                1f at 1050
+                1f at 1050     // kecil
                 0f at 1100
                 0f at 2000
-                0.8f at 2030
+                0.8f at 2030   // kedua
                 0f at 2060
             },
             repeatMode = RepeatMode.Restart
-        ), label = "lightning"
+        ),
+        label = "lightning"
     )
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
+    // 🔥 Generate bentuk petir random
+    val boltPath = remember {
+        generateLightningPath()
+    }
 
+    Canvas(
+        modifier = Modifier.fillMaxSize()
+    ) {
+
+        // 🌧 Rain drops ----------------------------------------------------
         drops.forEach { (xPos, initialY, speed) ->
             val progress = (animationProgress + initialY) % 1f
             val yPos = progress * size.height
@@ -1750,15 +1803,55 @@ fun ThunderstormEffect() {
             )
         }
 
-
-        if (lightningAlpha > 0.1f) {
-            drawRect(
-                color = Color.White.copy(alpha = 0.3f * lightningAlpha),
-                size = size
+        // ⚡ Petir zigzag -------------------------------------------------
+        if (lightningAlpha > 0.05f) {
+            drawPath(
+                path = boltPath.scaledToCanvas(size),
+                color = Color(0xFFFFF8E1).copy(alpha = lightningAlpha),
+                style = Stroke(
+                    width = 6f,
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round
+                )
             )
         }
     }
 }
+
+private fun generateLightningPath(): Path {
+    val path = Path()
+
+    var x = 0f
+    var y = 0f
+
+    path.moveTo(x, y)
+
+    // 8–12 segmen zig-zag
+    repeat(10) {
+        x += (-40..40).random().toFloat()
+        y += (60..120).random().toFloat()
+        path.lineTo(x, y)
+    }
+
+    return path
+}
+
+// 🔥 Scale path agar pas di tengah layar
+private fun Path.scaledToCanvas(size: Size): Path {
+    val scaled = Path()
+
+    val startX = size.width / 2f
+    val startY = size.height * 0.05f
+
+    this.asAndroidPath().transform(android.graphics.Matrix().apply {
+        postTranslate(startX, startY)
+    })
+
+    scaled.addPath(this)
+
+    return scaled
+}
+
 
 @Composable
 fun WeatherDetails(data: WeatherModel) {
