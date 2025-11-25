@@ -29,11 +29,23 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 ## Fitur Utama
 <table align="center">
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/52f5f7d9-ffb8-4422-bc98-038f8d1349a0" width="250"></td>
-    <td><img src="https://github.com/user-attachments/assets/da6c8833-6ce9-4287-9e2a-92e4fc925af6" width="250"></td>
-    <td><img src="https://github.com/user-attachments/assets/e8204172-0fb8-49f3-994b-39d91614d1d0" width="250"></td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/738624b2-ed9c-4d1a-9993-2c6c884a29db" width="400">
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/282832a7-c539-4bb0-8cf1-b1101afaa78e" width="400">
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/52f5f7d9-ffb8-4422-bc98-038f8d1349a0" width="220">
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/e8204172-0fb8-49f3-994b-39d91614d1d0" width="220">
+    </td>
   </tr>
 </table>
+
 
 
 
@@ -66,35 +78,96 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 
 ## Tech Stack
 
-### Core
-- **Kotlin** - 100% Kotlin codebase
-- **Jetpack Compose** - Declarative UI framework
-- **Material Design 3** - Latest design system from Google
-- **Kotlin Coroutines & Flow** - Asynchronous programming
+<h3>Core</h3>
+<table>
+  <tr>
+    <td><b>Kotlin</b></td>
+    <td>100% Kotlin codebase</td>
+  </tr>
+  <tr>
+    <td><b>Jetpack Compose</b></td>
+    <td>Declarative UI framework</td>
+  </tr>
+  <tr>
+    <td><b>Material Design 3</b></td>
+    <td>Latest design system from Google</td>
+  </tr>
+  <tr>
+    <td><b>Kotlin Coroutines & Flow</b></td>
+    <td>Asynchronous programming</td>
+  </tr>
+</table>
 
-### Architecture & Libraries
-- **MVVM Architecture** - Clean separation of concerns
-- **ViewModel** - Lifecycle-aware state management
-- **StateFlow** - Reactive state holder
-- **Retrofit** - Type-safe HTTP client
-- **OkHttp** - HTTP & HTTP/2 client
-- **Gson** - JSON serialization/deserialization
-- **Coil** - Image loading library for Compose
-- **Navigation Compose** - In-app navigation
+
+<h3>Architecture & Libraries</h3>
+<table>
+  <tr>
+    <td><b>MVVM Architecture</b></td>
+    <td>Clean separation of concerns</td>
+  </tr>
+  <tr>
+    <td><b>ViewModel</b></td>
+    <td>Lifecycle-aware state management</td>
+  </tr>
+  <tr>
+    <td><b>StateFlow</b></td>
+    <td>Reactive state holder</td>
+  </tr>
+  <tr>
+    <td><b>Retrofit</b></td>
+    <td>Type-safe HTTP client</td>
+  </tr>
+  <tr>
+    <td><b>OkHttp</b></td>
+    <td>HTTP & HTTP/2 client</td>
+  </tr>
+  <tr>
+    <td><b>Gson</b></td>
+    <td>JSON serialization/deserialization</td>
+  </tr>
+  <tr>
+    <td><b>Coil</b></td>
+    <td>Image loading library for Compose</td>
+  </tr>
+  <tr>
+    <td><b>Navigation Compose</b></td>
+    <td>In-app navigation</td>
+  </tr>
+</table>
 
 ### API
 - **[WeatherAPI.com](https://www.weatherapi.com/)** - Reliable weather data provider
 
 <br>
 
-## Requirements
+<h3>Requirements</h3>
+<table>
+  <tr>
+    <td><b>Android Studio</b></td>
+    <td>Hedgehog (2023.1.1) atau lebih baru</td>
+  </tr>
+  <tr>
+    <td><b>Java Development Kit</b></td>
+    <td>JDK 17</td>
+  </tr>
+  <tr>
+    <td><b>Gradle</b></td>
+    <td>8.0+</td>
+  </tr>
+  <tr>
+    <td><b>Minimum SDK</b></td>
+    <td>24 (Android 7.0 Nougat)</td>
+  </tr>
+  <tr>
+    <td><b>Target SDK</b></td>
+    <td>36 (Android 15)</td>
+  </tr>
+  <tr>
+    <td><b>Compile SDK</b></td>
+    <td>36</td>
+  </tr>
+</table>
 
-- **Android Studio**: Hedgehog (2023.1.1) atau lebih baru
-- **Java Development Kit**: JDK 17
-- **Gradle**: 8.0+
-- **Minimum SDK**: 24 (Android 7.0 Nougat)
-- **Target SDK**: 36 (Android 15)
-- **Compile SDK**: 36
 
   <br>
 
