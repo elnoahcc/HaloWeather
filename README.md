@@ -77,7 +77,7 @@ Dikembangkan menggunakan arsitektur MVVM dan best practices Android development,
 
 <br>
 
-<h1 align="center">Tech Stack</h1>
+<h2 align="center">Tech Stack</h2>
 
 <h3>Core</h3>
 <table>
@@ -253,7 +253,7 @@ haloweather/
 
 ```
 
-## Build Commands
+<h2 align="center">Build Commands</h2>
 
 ### Development Build
 ```bash
@@ -284,7 +284,7 @@ haloweather/
 
 <br>
 
-## 📄 License
+<h2 align="center">License</h2>
 
 ```
 MIT License
